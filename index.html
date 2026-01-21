@@ -80,7 +80,7 @@
             <div id="players" class="tab-content active">
                 <div class="tab-header">
                     <h2><i class="fas fa-users"></i> Spillerhåndtering</h2>
-                    <p class="tab-description">Legg til, rediger eller fjern spillere. Spillere får nivå 1-6 bak kulissene, men dette vises ikke for foreldre.</p>
+                    <p class="tab-description">Legg til, rediger eller fjern spillere. Her kan du se og endre spilleres ferdighetsnivå (1-6).</p>
                 </div>
 
                 <!-- Legg til spiller form -->
@@ -91,7 +91,7 @@
                             <input type="text" id="playerName" placeholder="Feks: Per Hansen">
                         </div>
                         <div class="form-group">
-                            <label for="playerSkill">Ferdighetsnivå (bak kulissene):</label>
+                            <label for="playerSkill">Ferdighetsnivå:</label>
                             <select id="playerSkill">
                                 <option value="1">1 - Nybegynner</option>
                                 <option value="2">2 - Litt erfaring</option>
@@ -123,6 +123,10 @@
                                 <div class="stat-value" id="totalGoalies">0</div>
                                 <div class="stat-label">Målvakter</div>
                             </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="playerCount">0</div>
+                                <div class="stat-label">Aktive</div>
+                            </div>
                         </div>
                         <div class="list-actions">
                             <button id="exportBtn" class="btn-secondary">
@@ -147,7 +151,7 @@
             <div id="training" class="tab-content">
                 <div class="tab-header">
                     <h2><i class="fas fa-running"></i> Treningsgrupper</h2>
-                    <p class="tab-description">Lag balanserte treningsgrupper der de beste spillerne trener sammen (gruppe A).</p>
+                    <p class="tab-description">Lag balanserte treningsgrupper der de beste spillerne trener sammen (gruppe A). Ferdighetsnivå vises ikke her.</p>
                 </div>
 
                 <!-- Spillerutvalg -->
@@ -199,7 +203,7 @@
             <div id="match" class="tab-content">
                 <div class="tab-header">
                     <h2><i class="fas fa-futbol"></i> Kampoppsett</h2>
-                    <p class="tab-description">Lag jevne lag for kamper med balansert fordeling av ferdigheter.</p>
+                    <p class="tab-description">Lag jevne lag for kamper med balansert fordeling av ferdigheter. Nivå vises ikke for foreldre.</p>
                 </div>
 
                 <!-- Spillerutvalg -->
