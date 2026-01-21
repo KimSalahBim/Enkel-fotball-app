@@ -1,4 +1,4 @@
-// Fotball Trener App - Fullstendig versjon med alle fikser
+// Fotball Trener App - Fullstendig versjon med rotasjonsfunksjonalitet
 // Passord: "1234"
 
 // === GLOBALE VARIABLER ===
@@ -449,7 +449,7 @@ function setupTabs() {
     console.log('Tabs satt opp:', tabButtons.length, 'stk');
 }
 
-// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN)
+// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN MED ROTASJON PÅ TVERS)
 function createTrainingGroups() {
     const selectedCheckboxes = document.querySelectorAll('#trainingPlayerSelection input:checked');
     const selectedIndexes = Array.from(selectedCheckboxes).map(input => parseInt(input.value));
@@ -474,10 +474,22 @@ function createTrainingGroups() {
     
     const selectedPlayers = selectedIndexes.map(index => players[index]);
     
-    // SORTER spillere etter ferdighet (BESTE FØRST)
+    // 1. SORTER spillere etter ferdighet (BESTE FØRST)
     selectedPlayers.sort((a, b) => b.skill - a.skill);
     
     console.log('Sorterte spillere (beste først):', selectedPlayers.map(p => `${p.name} (${p.skill})`));
+    
+    // 2. GRUPPER SPILLERE ETTER FERDIGHETSNIVÅ
+    const playersBySkill = {};
+    selectedPlayers.forEach(player => {
+        if (!playersBySkill[player.skill]) {
+            playersBySkill[player.skill] = [];
+        }
+        playersBySkill[player.skill].push(player);
+    });
+    
+    // 3. FOR HVERT NIVÅ: BLAND OG FORDEL PÅ TVERS AV GRUPPER
+    // Dette gir rotasjon på tvers av alle grupper for spillere på samme nivå
     
     // Lag grupper
     const groups = Array.from({ length: numGroups }, () => ({
@@ -487,11 +499,9 @@ function createTrainingGroups() {
         groupQuality: ''
     }));
     
-    // ENKEL ALGORITME: GRUPPE 1 FÅR DE BESTE SPILLERNE
-    // Beregn hvor mange spillere hver gruppe skal ha
+    // Beregn gruppestørrelser
     const basePlayersPerGroup = Math.floor(selectedPlayers.length / numGroups);
     const remainder = selectedPlayers.length % numGroups;
-    
     const groupSizes = [];
     for (let i = 0; i < numGroups; i++) {
         groupSizes[i] = basePlayersPerGroup + (i < remainder ? 1 : 0);
@@ -499,39 +509,204 @@ function createTrainingGroups() {
     
     console.log('Gruppestørrelser:', groupSizes);
     
-    // Fordel spillere - GRUPPE 1 FÅR DE FØRSTE (BESTE) SPILLERNE
-    let playerIndex = 0;
+    // 4. ALGORITME: FORDEL SPILLERE NIVÅ FOR NIVÅ MED ROTASJON
+    // Start fra høyeste nivå og arbeid nedover
+    const skillLevels = Object.keys(playersBySkill).sort((a, b) => b - a); // Høyeste først
     
-    for (let groupNum = 0; groupNum < numGroups; groupNum++) {
-        const targetSize = groupSizes[groupNum];
+    // For hvert ferdighetsnivå
+    skillLevels.forEach(skillLevel => {
+        const playersAtThisLevel = playersBySkill[skillLevel];
+        console.log(`Nivå ${skillLevel}: ${playersAtThisLevel.length} spillere`, playersAtThisLevel.map(p => p.name));
         
-        for (let i = 0; i < targetSize && playerIndex < selectedPlayers.length; i++) {
-            const player = selectedPlayers[playerIndex];
-            groups[groupNum].players.push(player);
-            groups[groupNum].totalSkill += player.skill;
-            if (player.isGoalie) groups[groupNum].goalies++;
-            playerIndex++;
+        // Bland spillere på dette nivået for rotasjon
+        const shuffledPlayers = [...playersAtThisLevel];
+        for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
+        }
+        
+        console.log(`Blandet nivå ${skillLevel}:`, shuffledPlayers.map(p => p.name));
+        
+        // Fordel disse spillerne på tvers av gruppene
+        // Men hold orden: Fyll gruppe 1 først med de beste nivåene
+        
+        // Finn hvilke grupper som trenger spillere fra dette nivået
+        // Vi starter med å fylle opp gruppene som har færrest spillere først
+        // Men vi må huske på at gruppe 1 skal ha de beste spillerne
+        
+        // Strategi for nivå 6: Alle til gruppe 1 (dersom mulig)
+        if (parseInt(skillLevel) === 6) {
+            // Alle nivå 6 spillere til gruppe 1 hvis det er plass
+            for (const player of shuffledPlayers) {
+                if (groups[0].players.length < groupSizes[0]) {
+                    groups[0].players.push(player);
+                    groups[0].totalSkill += player.skill;
+                    if (player.isGoalie) groups[0].goalies++;
+                } else {
+                    // Hvis gruppe 1 er full, finn neste gruppe med plass
+                    for (let g = 1; g < numGroups; g++) {
+                        if (groups[g].players.length < groupSizes[g]) {
+                            groups[g].players.push(player);
+                            groups[g].totalSkill += player.skill;
+                            if (player.isGoalie) groups[g].goalies++;
+                            break;
+                        }
+                    }
+                }
+            }
+        } else {
+            // For andre nivåer: Fordel jevnt på tvers av grupper
+            // Men start fra gruppe 1 og gå nedover
+            
+            let currentGroup = 0;
+            let direction = 1; // 1 = nedover, -1 = oppover
+            
+            for (const player of shuffledPlayers) {
+                let placed = false;
+                
+                // Prøv å finn en gruppe med plass
+                for (let attempts = 0; attempts < numGroups * 2; attempts++) {
+                    if (groups[currentGroup].players.length < groupSizes[currentGroup]) {
+                        groups[currentGroup].players.push(player);
+                        groups[currentGroup].totalSkill += player.skill;
+                        if (player.isGoalie) groups[currentGroup].goalies++;
+                        placed = true;
+                        break;
+                    }
+                    
+                    // Gå til neste gruppe
+                    if (direction === 1) {
+                        currentGroup++;
+                        if (currentGroup >= numGroups) {
+                            currentGroup = numGroups - 1;
+                            direction = -1;
+                        }
+                    } else {
+                        currentGroup--;
+                        if (currentGroup < 0) {
+                            currentGroup = 0;
+                            direction = 1;
+                        }
+                    }
+                }
+                
+                // Hvis vi ikke fant plass (skal ikke skje), legg til i gruppe med færrest spillere
+                if (!placed) {
+                    let smallestGroupIndex = 0;
+                    for (let g = 1; g < numGroups; g++) {
+                        if (groups[g].players.length < groups[smallestGroupIndex].players.length) {
+                            smallestGroupIndex = g;
+                        }
+                    }
+                    
+                    groups[smallestGroupIndex].players.push(player);
+                    groups[smallestGroupIndex].totalSkill += player.skill;
+                    if (player.isGoalie) groups[smallestGroupIndex].goalies++;
+                }
+                
+                // Gå til neste gruppe for neste spiller
+                if (direction === 1) {
+                    currentGroup++;
+                    if (currentGroup >= numGroups) {
+                        currentGroup = numTeams - 1;
+                        direction = -1;
+                    }
+                } else {
+                    currentGroup--;
+                    if (currentGroup < 0) {
+                        currentGroup = 0;
+                        direction = 1;
+                    }
+                }
+            }
+        }
+    });
+    
+    // 5. ETTER FORDELING: SJEKK AT GRUPPENE ER BALANSERTE
+    // Hvis noen grupper har for mange/få spillere, juster
+    
+    const teamSizes = groups.map(g => g.players.length);
+    const maxSize = Math.max(...teamSizes);
+    const minSize = Math.min(...teamSizes);
+    
+    if (maxSize - minSize > 1) {
+        console.log('Justerer gruppestørrelser for jevnere fordeling...');
+        
+        // Prøv å balansere ved å flytte spillere på samme nivå
+        for (let adjustment = 0; adjustment < 3; adjustment++) {
+            const largestGroupIndex = teamSizes.indexOf(maxSize);
+            const smallestGroupIndex = teamSizes.indexOf(minSize);
+            
+            if (largestGroupIndex !== -1 && smallestGroupIndex !== -1 && 
+                groups[largestGroupIndex].players.length > 1) {
+                
+                // Finn en spiller å flytte (helst en som ikke ødelegger nivåbalansen for mye)
+                let playerToMoveIndex = -1;
+                
+                for (let i = 0; i < groups[largestGroupIndex].players.length; i++) {
+                    const player = groups[largestGroupIndex].players[i];
+                    // Sjekk om denne spilleren også finnes i andre grupper på samme nivå
+                    // Da kan vi flytte den uten å ødelegge "beste sammen"-prinsippet
+                    const playerSkill = player.skill;
+                    
+                    // Tell hvor mange på samme nivå som finnes i andre grupper
+                    let sameSkillInOtherGroups = 0;
+                    for (let g = 0; g < numGroups; g++) {
+                        if (g !== largestGroupIndex) {
+                            sameSkillInOtherGroups += groups[g].players.filter(p => p.skill === playerSkill).length;
+                        }
+                    }
+                    
+                    if (sameSkillInOtherGroups > 0) {
+                        playerToMoveIndex = i;
+                        break;
+                    }
+                }
+                
+                if (playerToMoveIndex !== -1) {
+                    const playerToMove = groups[largestGroupIndex].players[playerToMoveIndex];
+                    
+                    // Flytt spilleren
+                    groups[largestGroupIndex].players.splice(playerToMoveIndex, 1);
+                    groups[largestGroupIndex].totalSkill -= playerToMove.skill;
+                    if (playerToMove.isGoalie) groups[largestGroupIndex].goalies--;
+                    
+                    groups[smallestGroupIndex].players.push(playerToMove);
+                    groups[smallestGroupIndex].totalSkill += playerToMove.skill;
+                    if (playerToMove.isGoalie) groups[smallestGroupIndex].goalies++;
+                    
+                    // Oppdater størrelser
+                    teamSizes[largestGroupIndex]--;
+                    teamSizes[smallestGroupIndex]++;
+                }
+            }
+            
+            // Sjekk om vi har oppnådd jevn fordeling
+            const newMaxSize = Math.max(...teamSizes);
+            const newMinSize = Math.min(...teamSizes);
+            
+            if (newMaxSize - newMinSize <= 1) break;
         }
     }
     
-    // Sorter gruppene etter total ferdighet (gruppe 1 vil alltid være øverst)
+    // 6. SORTER GRUPPENE ETTER TOTAL FERDIGHET
     groups.sort((a, b) => b.totalSkill - a.totalSkill);
     
     // Sett gruppekvalitet
     groups.forEach((group, index) => {
         if (index === 0) {
-            group.groupQuality = 'sterk'; // Denne har de BESTE spillerne
+            group.groupQuality = 'sterk';
         } else if (index === groups.length - 1) {
-            group.groupQuality = 'svak'; // Denne har de SVAKESTE spillerne
+            group.groupQuality = 'svak';
         } else {
             group.groupQuality = 'middels';
         }
     });
     
-    // Vis resultater
+    // 7. VIS RESULTATER
     displayTrainingResults(groups);
     
-    showNotification(`Lagde ${numGroups} treningsgrupper! Gruppe 1 har de beste spillerne.`, 'success');
+    showNotification(`Lagde ${numGroups} treningsgrupper med rotasjon på tvers!`, 'success');
 }
 
 function displayTrainingResults(groups) {
@@ -1595,4 +1770,4 @@ setInterval(() => {
 }, 60000); // Sjekk hvert minutt
 
 // Debug info
-console.log('App.js lastet ferdig - inkludert alle fikser!');
+console.log('App.js lastet ferdig - inkludert rotasjonsfunksjon!');
