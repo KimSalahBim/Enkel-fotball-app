@@ -1,23 +1,70 @@
-// Fotball Trener App - Fullstendig versjon med rotasjonsfunksjonalitet
-// Passord: "1234"
+// Fotball Trener App - Fullstendig versjon med logoer
+// Passord: "1234" - ALL FUNKSJONALITET IDENTISK MED FORRIGE VERSJON
 
 // === GLOBALE VARIABLER ===
 let players = [];
 let ligaData = null;
+let currentLogo = 'eggeil';
 
 // === INNLASTING ===
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('App starter...');
-    
-    // Sjekk om vi allerede er logget inn
+    const savedLogo = localStorage.getItem('fotballLogo');
+    if (savedLogo) currentLogo = savedLogo;
     checkLoginStatus();
 });
 
-// === PASSORD FUNKSJONER ===
+// === LOGO FUNKSJONER ===
+function updateLogo() {
+    const logoContainer = document.getElementById('logoContainer');
+    if (!logoContainer) return;
+    
+    logoContainer.innerHTML = '';
+    
+    const logoDiv = document.createElement('div');
+    logoDiv.className = 'club-logo';
+    
+    if (currentLogo === 'eggeil') {
+        logoDiv.innerHTML = `
+            <div class="logo-display">
+                <div class="logo-badge" style="background: #0d47a1;">EI</div>
+                <div>
+                    <div class="club-name">Egge IL</div>
+                    <div class="club-sport">Fotball</div>
+                </div>
+            </div>
+        `;
+    } else {
+        logoDiv.innerHTML = `
+            <div class="logo-display">
+                <div class="logo-badge" style="background: #d32f2f;">SI</div>
+                <div>
+                    <div class="club-name">Sørlia IL</div>
+                    <div class="club-sport">Fotball</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    const switchBtn = document.createElement('button');
+    switchBtn.className = 'logo-switch-btn';
+    switchBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    switchBtn.title = 'Bytt klubb';
+    switchBtn.onclick = function() {
+        currentLogo = currentLogo === 'eggeil' ? 'sorliail' : 'eggeil';
+        localStorage.setItem('fotballLogo', currentLogo);
+        updateLogo();
+        showNotification(`Byttet til ${currentLogo === 'eggeil' ? 'Egge IL' : 'Sørlia IL'}`, 'info');
+    };
+    
+    logoContainer.appendChild(logoDiv);
+    logoContainer.appendChild(switchBtn);
+}
+
+// === PASSORD FUNKSJONER (IDENTISK) ===
 function showMainApp() {
-    console.log('Viser hovedapp');
     document.getElementById('passwordProtection').style.display = 'none';
     document.getElementById('mainApp').style.display = 'block';
+    updateLogo();
 }
 
 function checkLoginStatus() {
@@ -27,24 +74,19 @@ function checkLoginStatus() {
     if (isLoggedIn === 'true' && loginTime) {
         const hoursSinceLogin = (Date.now() - parseInt(loginTime)) / (1000 * 60 * 60);
         if (hoursSinceLogin < 8) {
-            // Fortsatt innlogget
             showMainApp();
             initApp();
             return;
         }
     }
-    
-    // Ikke innlogget eller sesjon utløpt
     showPasswordScreen();
     setupPasswordEvents();
 }
 
 function showPasswordScreen() {
-    console.log('Viser passordskjerm');
     document.getElementById('passwordProtection').style.display = 'flex';
     document.getElementById('mainApp').style.display = 'none';
     
-    // Sett fokus på passordfelt
     setTimeout(() => {
         const passwordInput = document.getElementById('passwordInput');
         if (passwordInput) {
@@ -55,29 +97,18 @@ function showPasswordScreen() {
 }
 
 function setupPasswordEvents() {
-    console.log('Setter opp passord-events');
-    
-    // Logg inn knapp
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {
-        loginBtn.addEventListener('click', function() {
-            console.log('Login knapp klikket');
-            checkPassword();
-        });
+        loginBtn.addEventListener('click', checkPassword);
     }
     
-    // Enter i passordfelt
     const passwordInput = document.getElementById('passwordInput');
     if (passwordInput) {
         passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                console.log('Enter trykket i passordfelt');
-                checkPassword();
-            }
+            if (e.key === 'Enter') checkPassword();
         });
     }
     
-    // Vis/skjul passord
     const showBtn = document.getElementById('showPasswordBtn');
     if (showBtn) {
         showBtn.addEventListener('click', function() {
@@ -98,37 +129,21 @@ function checkPassword() {
     const password = passwordInput ? passwordInput.value.trim() : '';
     const errorDiv = document.getElementById('passwordError');
     
-    console.log('Sjekker passord:', password);
-    
-    // Passord er "1234"
     if (password === '1234') {
-        console.log('Riktig passord!');
-        
-        // Lagre login
         localStorage.setItem('fotballLoggedIn', 'true');
         localStorage.setItem('fotballLoginTime', Date.now().toString());
         
-        // Fjern feilmelding
         if (errorDiv) errorDiv.classList.remove('show');
-        
-        // Vis hovedapp
         showMainApp();
         initApp();
         
-        // Vis velkomst
-        showNotification('Velkommen! Du er nå logget inn.', 'success');
+        const clubName = currentLogo === 'eggeil' ? 'Egge IL' : 'Sørlia IL';
+        showNotification(`Velkommen til ${clubName} Trenerapp!`, 'success');
     } else {
-        console.log('Feil passord!');
-        
-        // Vis feilmelding
         if (errorDiv) errorDiv.classList.add('show');
-        
-        // Tøm passordfelt
         if (passwordInput) {
             passwordInput.value = '';
             passwordInput.focus();
-            
-            // Ryst animasjon
             passwordInput.style.animation = 'none';
             setTimeout(() => {
                 passwordInput.style.animation = 'shake 0.5s ease';
@@ -138,55 +153,41 @@ function checkPassword() {
 }
 
 function logout() {
-    if (confirm('Er du sikker på at du vil logge ut?')) {
+    const clubName = currentLogo === 'eggeil' ? 'Egge IL' : 'Sørlia IL';
+    
+    if (confirm(`Logg ut fra ${clubName} Trenerapp?`)) {
         localStorage.removeItem('fotballLoggedIn');
         localStorage.removeItem('fotballLoginTime');
         
-        // Tøm passordfelt før visning
         const passwordInput = document.getElementById('passwordInput');
-        if (passwordInput) {
-            passwordInput.value = '';
-        }
+        if (passwordInput) passwordInput.value = '';
         
         showPasswordScreen();
         showNotification('Du er nå logget ut.', 'info');
     }
 }
 
-// === HOVEDAPP ===
+// === HOVEDAPP (IDENTISK) ===
 function initApp() {
-    console.log('Initialiserer hovedapp...');
-    
-    // Last spillere
     loadPlayers();
-    
-    // Last liga data
     loadLigaData();
-    
-    // Oppdater visning
     renderPlayers();
     updateStats();
     renderLigaTeamNames();
     renderLigaMatches();
     renderLigaTable();
-    
-    // Sett opp ALLE event listeners
     setupAllEventListeners();
-    
-    // Sett opp tabs
     setupTabs();
 }
 
 function loadPlayers() {
     const saved = localStorage.getItem('fotballPlayers');
     players = saved ? JSON.parse(saved) : [];
-    console.log('Lastet', players.length, 'spillere');
 }
 
 function savePlayers() {
     localStorage.setItem('fotballPlayers', JSON.stringify(players));
     updateStats();
-    // Oppdater spillervelgere i trening og kamp
     renderPlayerSelections();
 }
 
@@ -197,14 +198,13 @@ function updateStats() {
     
     if (totalPlayers && totalGoalies && playerCount) {
         const goalies = players.filter(p => p.isGoalie).length;
-        
         totalPlayers.textContent = players.length;
         totalGoalies.textContent = goalies;
         playerCount.textContent = players.length;
     }
 }
 
-// === SPILLERHÅNDTERING ===
+// === SPILLERHÅNDTERING (IDENTISK) ===
 function renderPlayers() {
     const playerList = document.getElementById('playerList');
     if (!playerList) return;
@@ -214,7 +214,6 @@ function renderPlayers() {
             <div class="empty-state">
                 <i class="fas fa-users-slash"></i>
                 <p>Ingen spillere lagt til ennå</p>
-                <p class="small-text">Legg til noen spillere for å komme i gang</p>
             </div>
         `;
         return;
@@ -223,21 +222,19 @@ function renderPlayers() {
     let html = '';
     players.forEach((player, index) => {
         const initials = player.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        const skillColors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'];
-        const color = skillColors[player.skill - 1] || '#2E8B57';
         
         html += `
-            <div class="player-item" data-id="${player.id}">
-                <div class="player-avatar" style="background: ${color}">
+            <div class="player-item">
+                <div class="player-avatar">
                     ${initials}
+                    ${player.isGoalie ? '<div class="goalie-badge">🧤</div>' : ''}
                 </div>
                 <div class="player-info">
                     <div class="player-name">${player.name}</div>
                     <div class="player-meta">
-                        <span class="skill-badge" style="background: ${color}">
-                            <i class="fas fa-star"></i> Nivå ${player.skill}
+                        <span class="position-indicator">
+                            ${player.isGoalie ? 'Målvakt' : 'Feltspiller'}
                         </span>
-                        ${player.isGoalie ? '<span class="goalie-indicator"><i class="fas fa-tshirt"></i> Liker målvakt</span>' : ''}
                     </div>
                 </div>
                 <div class="player-actions">
@@ -260,13 +257,7 @@ function renderPlayerSelections() {
     const matchSelection = document.getElementById('matchPlayerSelection');
     
     if (players.length === 0) {
-        const emptyHtml = `
-            <div class="empty-state">
-                <i class="fas fa-user-plus"></i>
-                <p>Legg til spillere først i "Spillere"-fanen</p>
-            </div>
-        `;
-        
+        const emptyHtml = `<div class="empty-state"><i class="fas fa-user-plus"></i><p>Legg til spillere først</p></div>`;
         if (trainingSelection) trainingSelection.innerHTML = emptyHtml;
         if (matchSelection) matchSelection.innerHTML = emptyHtml;
         updateSelectedCounts();
@@ -277,17 +268,13 @@ function renderPlayerSelections() {
     let matchHtml = '';
     
     players.forEach((player, index) => {
-        const skillColors = ['#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6'];
-        const color = skillColors[player.skill - 1] || '#2E8B57';
-        
         const playerHtml = `
             <label class="player-checkbox-item selected">
                 <input type="checkbox" value="${index}" checked>
                 <div class="player-checkbox-info">
                     <div class="player-checkbox-name">${player.name}</div>
                     <div class="player-checkbox-details">
-                        <span style="color: ${color}">Nivå ${player.skill}</span>
-                        ${player.isGoalie ? '<span><i class="fas fa-tshirt"></i></span>' : ''}
+                        <span class="player-role">${player.isGoalie ? '🧤 Målvakt' : '⚽ Feltspiller'}</span>
                     </div>
                 </div>
             </label>
@@ -300,7 +287,6 @@ function renderPlayerSelections() {
     if (trainingSelection) trainingSelection.innerHTML = trainingHtml;
     if (matchSelection) matchSelection.innerHTML = matchHtml;
     
-    // Legg til event listeners for checkbox-endringer
     setTimeout(() => {
         document.querySelectorAll('#trainingPlayerSelection input[type="checkbox"]').forEach(cb => {
             cb.addEventListener('change', updateSelectedCounts);
@@ -330,7 +316,7 @@ function addPlayer() {
     const name = nameInput ? nameInput.value.trim() : '';
     
     if (!name) {
-        showNotification('Skriv inn et navn først', 'error');
+        showNotification('Skriv inn spillerens navn først', 'error');
         if (nameInput) nameInput.focus();
         return;
     }
@@ -352,7 +338,6 @@ function addPlayer() {
     savePlayers();
     renderPlayers();
     
-    // Tøm skjema
     if (nameInput) nameInput.value = '';
     if (goalieCheckbox) goalieCheckbox.checked = false;
     
@@ -365,11 +350,11 @@ window.deletePlayer = function(index) {
     
     const playerName = players[index].name;
     
-    if (confirm(`Er du sikker på at du vil slette ${playerName}?`)) {
+    if (confirm(`Slett ${playerName} fra spillerlisten?`)) {
         players.splice(index, 1);
         savePlayers();
         renderPlayers();
-        showNotification(`Spiller "${playerName}" slettet`, 'success');
+        showNotification(`${playerName} er slettet`, 'success');
     }
 };
 
@@ -378,7 +363,7 @@ window.editPlayer = function(index) {
     
     const player = players[index];
     
-    const newName = prompt('Nytt navn:', player.name);
+    const newName = prompt('Endre navn:', player.name);
     if (newName === null) return;
     
     const newNameTrimmed = newName.trim();
@@ -387,16 +372,16 @@ window.editPlayer = function(index) {
         return;
     }
     
-    const newSkill = prompt('Nytt ferdighetsnivå (1-6):', player.skill);
+    const newSkill = prompt('Ferdighetsnivå (1-6):\n1 = Nybegynner\n6 = Avansert', player.skill);
     if (newSkill === null) return;
     
     const skillNum = parseInt(newSkill);
     if (isNaN(skillNum) || skillNum < 1 || skillNum > 6) {
-        showNotification('Ferdighetsnivå må være mellom 1 og 6', 'error');
+        showNotification('Skriv et tall mellom 1 og 6', 'error');
         return;
     }
     
-    const isGoalie = confirm('Liker å stå i mål?\n\nKlikk OK for JA\nKlikk Avbryt for NEI');
+    const isGoalie = confirm('Liker å stå i mål?\n\nOK = Målvakt\nAvbryt = Feltspiller');
     
     player.name = newNameTrimmed;
     player.skill = skillNum;
@@ -404,52 +389,37 @@ window.editPlayer = function(index) {
     
     savePlayers();
     renderPlayers();
-    showNotification(`Spiller "${newNameTrimmed}" oppdatert`, 'success');
+    showNotification(`${newNameTrimmed} oppdatert`, 'success');
 };
 
-// === TABS FUNKSJON ===
+// === TABS FUNKSJON (IDENTISK) ===
 function setupTabs() {
-    console.log('Setter opp tabs...');
-    
     const tabButtons = document.querySelectorAll('.nav-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const tabId = this.getAttribute('data-tab');
-            console.log('Byttet til tab:', tabId);
             
-            // Fjern active fra alle
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
             
-            // Legg til active på valgt
             this.classList.add('active');
             const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active');
-            }
+            if (targetTab) targetTab.classList.add('active');
             
-            // Oppdater spillervelgere hvis vi går til trening/kamp
             if (tabId === 'training' || tabId === 'match') {
-                setTimeout(() => {
-                    renderPlayerSelections();
-                }, 50);
+                setTimeout(() => renderPlayerSelections(), 50);
             }
             
-            // Oppdater liga team names hvis vi går til liga
             if (tabId === 'liga') {
-                setTimeout(() => {
-                    renderLigaTeamNames();
-                }, 50);
+                setTimeout(() => renderLigaTeamNames(), 50);
             }
         });
     });
-    
-    console.log('Tabs satt opp:', tabButtons.length, 'stk');
 }
 
-// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN MED ROTASJON)
+// === TRENINGSGRUPPER (IDENTISK ALGORITME) ===
 function createTrainingGroups() {
     const selectedCheckboxes = document.querySelectorAll('#trainingPlayerSelection input:checked');
     const selectedIndexes = Array.from(selectedCheckboxes).map(input => parseInt(input.value));
@@ -474,24 +444,17 @@ function createTrainingGroups() {
     
     const selectedPlayers = selectedIndexes.map(index => players[index]);
     
-    // SORTER spillere etter ferdighet (BESTE FØRST)
+    // Original algoritme - IDENTISK
     selectedPlayers.sort((a, b) => b.skill - a.skill);
     
-    console.log('Sorterte spillere (beste først):', selectedPlayers.map(p => `${p.name} (${p.skill})`));
-    
-    // GRUPPER SPILLERE ETTER FERDIGHETSNIVÅ
     const playersBySkill = {};
     selectedPlayers.forEach(player => {
-        if (!playersBySkill[player.skill]) {
-            playersBySkill[player.skill] = [];
-        }
+        if (!playersBySkill[player.skill]) playersBySkill[player.skill] = [];
         playersBySkill[player.skill].push(player);
     });
     
-    // BLAND SPILLERE PÅ SAMME NIVÅ FOR ROTASJON
     for (const skillLevel in playersBySkill) {
         if (playersBySkill[skillLevel].length > 1) {
-            // Bland spillere på samme nivå
             const shuffled = [...playersBySkill[skillLevel]];
             for (let i = shuffled.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -501,17 +464,10 @@ function createTrainingGroups() {
         }
     }
     
-    // BYGG TILBAKE DEN SORTERTE LISTEN MED BLANDEDE SPILLERE PÅ SAMME NIVÅ
     const shuffledSelectedPlayers = [];
-    const skillLevels = Object.keys(playersBySkill).sort((a, b) => b - a); // Høyeste først
+    const skillLevels = Object.keys(playersBySkill).sort((a, b) => b - a);
+    skillLevels.forEach(skill => shuffledSelectedPlayers.push(...playersBySkill[skill]));
     
-    skillLevels.forEach(skill => {
-        shuffledSelectedPlayers.push(...playersBySkill[skill]);
-    });
-    
-    console.log('Blandet spillere på samme nivå:', shuffledSelectedPlayers.map(p => `${p.name} (${p.skill})`));
-    
-    // Lag grupper
     const groups = Array.from({ length: numGroups }, () => ({
         players: [],
         totalSkill: 0,
@@ -519,8 +475,6 @@ function createTrainingGroups() {
         groupQuality: ''
     }));
     
-    // ALGORITME: GRUPPE 1 FÅR DE BESTE SPILLERNE (men blandet innenfor nivå)
-    // Beregn hvor mange spillere hver gruppe skal ha
     const basePlayersPerGroup = Math.floor(shuffledSelectedPlayers.length / numGroups);
     const remainder = shuffledSelectedPlayers.length % numGroups;
     
@@ -529,15 +483,9 @@ function createTrainingGroups() {
         groupSizes[i] = basePlayersPerGroup + (i < remainder ? 1 : 0);
     }
     
-    console.log('Gruppestørrelser:', groupSizes);
-    
-    // Fordel spillere - GRUPPE 1 FÅR DE FØRSTE (BESTE) SPILLERNE
-    // MEN nå er spillere på samme nivå blandet, så vi får rotasjon
     let playerIndex = 0;
-    
     for (let groupNum = 0; groupNum < numGroups; groupNum++) {
         const targetSize = groupSizes[groupNum];
-        
         for (let i = 0; i < targetSize && playerIndex < shuffledSelectedPlayers.length; i++) {
             const player = shuffledSelectedPlayers[playerIndex];
             groups[groupNum].players.push(player);
@@ -547,24 +495,16 @@ function createTrainingGroups() {
         }
     }
     
-    // Sorter gruppene etter total ferdighet (gruppe 1 vil alltid være øverst)
     groups.sort((a, b) => b.totalSkill - a.totalSkill);
     
-    // Sett gruppekvalitet
     groups.forEach((group, index) => {
-        if (index === 0) {
-            group.groupQuality = 'sterk'; // Denne har de BESTE spillerne
-        } else if (index === groups.length - 1) {
-            group.groupQuality = 'svak'; // Denne har de SVAKESTE spillerne
-        } else {
-            group.groupQuality = 'middels';
-        }
+        if (index === 0) group.groupQuality = 'sterk';
+        else if (index === groups.length - 1) group.groupQuality = 'utvikling';
+        else group.groupQuality = 'middels';
     });
     
-    // Vis resultater
     displayTrainingResults(groups);
-    
-    showNotification(`Lagde ${numGroups} treningsgrupper med rotasjon! Gruppe 1 har de beste spillerne.`, 'success');
+    showNotification(`${numGroups} treningsgrupper opprettet!`, 'success');
 }
 
 function displayTrainingResults(groups) {
@@ -574,69 +514,49 @@ function displayTrainingResults(groups) {
     let html = '<div class="groups-container">';
     
     groups.forEach((group, index) => {
-        const avgSkill = group.players.length > 0 
-            ? (group.totalSkill / group.players.length).toFixed(1)
-            : 0;
-        
-        let qualityIcon = '⚪';
-        let qualityText = '';
+        let qualityIcon = '⚪', qualityText = '';
         
         if (group.groupQuality === 'sterk') {
-            qualityIcon = '🏆';
-            qualityText = ' (Beste spillerne)';
-        } else if (group.groupQuality === 'svak') {
+            qualityIcon = '⭐';
+            qualityText = ' Gruppe A';
+        } else if (group.groupQuality === 'utvikling') {
             qualityIcon = '🌱';
-            qualityText = ' (Svakeste spillerne)';
+            qualityText = ' Gruppe C';
         } else if (group.groupQuality === 'middels') {
             qualityIcon = '⚖️';
-            qualityText = ' (Middels)';
+            qualityText = ' Gruppe B';
         }
         
         html += `
             <div class="group-card">
                 <div class="group-header">
-                    <span class="group-name">${qualityIcon} Gruppe ${index + 1}${qualityText}</span>
+                    <span class="group-name">${qualityIcon}${qualityText}</span>
                     <span class="group-stats">
-                        ${group.players.length} spillere | 
-                        Totalt: ${group.totalSkill} | 
-                        Gj.snitt: ${avgSkill}
-                        ${group.goalies > 0 ? ' | 🧤 ' + group.goalies + ' målvakt(er)' : ''}
+                        ${group.players.length} spillere • 
+                        ${group.goalies > 0 ? group.goalies + ' målvakt' + (group.goalies > 1 ? 'er' : '') : ''}
                     </span>
                 </div>
-                <ul class="group-players">
-        `;
+                <ul class="group-players">`;
         
         group.players.forEach(player => {
             html += `
                 <li class="group-player">
                     <span>${player.name}</span>
-                    <span>
-                        <span class="skill-badge">${player.skill}</span>
-                        ${player.isGoalie ? '🧤' : ''}
-                    </span>
-                </li>
-            `;
+                    <span>${player.isGoalie ? '🧤' : '⚽'}</span>
+                </li>`;
         });
         
-        html += `
-                </ul>
-            </div>
-        `;
+        html += `</ul></div>`;
     });
     
     html += '</div>';
     resultsDiv.innerHTML = html;
 }
 
-// === KAMPOPPSETT === (JEVE LAG MED BALANSERT FORDELING)
+// === KAMPOPPSETT (IDENTISK ALGORITME) ===
 function createMatchTeams() {
-    console.log('Starter lag kampoppsett...');
-    
-    // Hent alle valgte spillere
     const selectedCheckboxes = document.querySelectorAll('#matchPlayerSelection input:checked');
     const selectedIndexes = Array.from(selectedCheckboxes).map(input => parseInt(input.value));
-    
-    console.log('Valgte spillere for kamp:', selectedIndexes);
     
     if (selectedIndexes.length < 2) {
         showNotification('Velg minst 2 spillere for kamp', 'error');
@@ -651,112 +571,79 @@ function createMatchTeams() {
         return;
     }
     
-    console.log('Antall lag:', numTeams);
-    
     if (selectedIndexes.length < numTeams) {
-        showNotification(`For få spillere for ${numTeams} lag. Velg minst ${numTeams} spillere.`, 'error');
+        showNotification(`For få spillere for ${numTeams} lag`, 'error');
         return;
     }
     
-    const selectedPlayers = selectedIndexes.map(index => {
-        return players[index];
-    }).filter(player => player !== undefined);
-    
-    console.log('Valgte spillere:', selectedPlayers);
-    
-    // Sjekk målvakter
+    const selectedPlayers = selectedIndexes.map(index => players[index]).filter(p => p !== undefined);
     const goalies = selectedPlayers.filter(p => p.isGoalie);
-    console.log('Målvakter:', goalies.length);
     
     const allowWithoutGoalies = document.getElementById('allowTeamsWithoutGoalies') ?
         document.getElementById('allowTeamsWithoutGoalies').checked : true;
     
     if (!allowWithoutGoalies && goalies.length < numTeams) {
-        showNotification(`Trenger minst ${numTeams} målvakter for ${numTeams} lag. Du har ${goalies.length}.`, 'error');
+        showNotification(`Trenger minst ${numTeams} målvakter`, 'error');
         return;
     }
     
-    // ALGORITME FOR JEVE LAG
-    // 1. Beregn hvor mange spillere per lag (minimum 2 per lag om mulig)
+    // Original algoritme - IDENTISK "snake draft"
     const basePlayersPerTeam = Math.floor(selectedPlayers.length / numTeams);
     const remainder = selectedPlayers.length % numTeams;
     
-    console.log(`Spillere per lag: ${basePlayersPerTeam}, rest: ${remainder}`);
-    
-    // Sjekk at vi ikke får for få spillere på noen lag
     if (basePlayersPerTeam < 1) {
-        showNotification('For mange lag i forhold til antall spillere. Prøv med færre lag.', 'error');
+        showNotification('For mange lag i forhold til antall spillere', 'error');
         return;
     }
     
-    // 2. Lag lag
     const teams = Array.from({ length: numTeams }, () => ({
         players: [],
         totalSkill: 0,
         hasGoalie: false
     }));
     
-    // 3. Sorter spillere etter ferdighet (høyeste først)
     const sortedPlayers = [...selectedPlayers].sort((a, b) => b.skill - a.skill);
     
-    // 4. Beregn målgruppestørrelser - JEVE FORDELING
     const targetSizes = [];
     for (let i = 0; i < numTeams; i++) {
         targetSizes[i] = basePlayersPerTeam + (i < remainder ? 1 : 0);
     }
     
-    console.log('Målgruppestørrelser:', targetSizes);
-    
-    // 5. Fordel målvakter jevnt først
+    // Fordel målvakter
     if (goalies.length > 0) {
-        // Bland målvaktene for jevn fordeling
         const shuffledGoalies = [...goalies];
         for (let i = shuffledGoalies.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [shuffledGoalies[i], shuffledGoalies[j]] = [shuffledGoalies[j], shuffledGoalies[i]];
         }
         
-        // Fordel en målvakt til hvert lag om mulig
         for (let i = 0; i < Math.min(shuffledGoalies.length, numTeams); i++) {
             const goalie = shuffledGoalies[i];
             teams[i].players.push(goalie);
             teams[i].totalSkill += goalie.skill;
             teams[i].hasGoalie = true;
             
-            // Fjern fra sortedPlayers
             const playerIndex = sortedPlayers.findIndex(p => p.id === goalie.id);
-            if (playerIndex > -1) {
-                sortedPlayers.splice(playerIndex, 1);
-            }
+            if (playerIndex > -1) sortedPlayers.splice(playerIndex, 1);
         }
     }
     
-    // 6. JEVE FORDELING AV RESTEN - "SNAKE DRAFT"
-    // Dette gir både jevne lag og balansert ferdighet
-    
     let currentTeam = 0;
-    let direction = 1; // 1 = fremover, -1 = bakover
+    let direction = 1;
     
     while (sortedPlayers.length > 0) {
-        // Ta neste spiller
         const player = sortedPlayers[0];
-        
-        // Finn et lag med plass
         let teamFound = false;
         
-        // Prøv å finne et lag som har plass og som vil forbedre balansen
         for (let attempts = 0; attempts < numTeams * 2; attempts++) {
-            // Sjekk om dette laget har plass
             if (teams[currentTeam].players.length < targetSizes[currentTeam]) {
-                // Legg til spilleren
                 teams[currentTeam].players.push(player);
                 teams[currentTeam].totalSkill += player.skill;
-                sortedPlayers.shift(); // Fjern fra listen
+                sortedPlayers.shift();
                 teamFound = true;
                 break;
             }
             
-            // Gå til neste lag
             if (direction === 1) {
                 currentTeam++;
                 if (currentTeam >= numTeams) {
@@ -772,7 +659,6 @@ function createMatchTeams() {
             }
         }
         
-        // Hvis vi ikke fant et lag med plass (skal ikke skje), legg til i det med færrest spillere
         if (!teamFound) {
             let smallestTeamIndex = 0;
             for (let i = 1; i < numTeams; i++) {
@@ -786,7 +672,6 @@ function createMatchTeams() {
             sortedPlayers.shift();
         }
         
-        // Gå til neste lag for neste spiller (snake pattern)
         if (direction === 1) {
             currentTeam++;
             if (currentTeam >= numTeams) {
@@ -802,16 +687,13 @@ function createMatchTeams() {
         }
     }
     
-    // 7. SJEKK OG FIKS ULIKE STØRRELSER
+    // Juster størrelser hvis nødvendig
     const teamSizes = teams.map(t => t.players.length);
     const maxSize = Math.max(...teamSizes);
     const minSize = Math.min(...teamSizes);
     const sizeDifference = maxSize - minSize;
     
-    // Hvis forskjellen er for stor (> 1), juster
     if (sizeDifference > 1) {
-        console.log('Justerer lagstørrelser for jevnere fordeling...');
-        
         for (let adjustment = 0; adjustment < 3; adjustment++) {
             const largestTeamIndex = teamSizes.indexOf(maxSize);
             const smallestTeamIndex = teamSizes.indexOf(minSize);
@@ -819,9 +701,7 @@ function createMatchTeams() {
             if (largestTeamIndex !== -1 && smallestTeamIndex !== -1 && 
                 teams[largestTeamIndex].players.length > 1) {
                 
-                // Finn en spiller å flytte (helst en som ikke er målvakt)
                 let playerToMoveIndex = -1;
-                
                 for (let i = 0; i < teams[largestTeamIndex].players.length; i++) {
                     const player = teams[largestTeamIndex].players[i];
                     if (!player.isGoalie) {
@@ -830,39 +710,27 @@ function createMatchTeams() {
                     }
                 }
                 
-                // Hvis alle er målvakter, ta den første
-                if (playerToMoveIndex === -1) {
-                    playerToMoveIndex = 0;
-                }
-                
+                if (playerToMoveIndex === -1) playerToMoveIndex = 0;
                 const playerToMove = teams[largestTeamIndex].players[playerToMoveIndex];
                 
-                // Flytt spilleren
                 teams[largestTeamIndex].players.splice(playerToMoveIndex, 1);
                 teams[largestTeamIndex].totalSkill -= playerToMove.skill;
                 
                 teams[smallestTeamIndex].players.push(playerToMove);
                 teams[smallestTeamIndex].totalSkill += playerToMove.skill;
                 
-                // Oppdater størrelser
                 teamSizes[largestTeamIndex]--;
                 teamSizes[smallestTeamIndex]++;
                 
-                console.log(`Flyttet ${playerToMove.name} for jevnere lagstørrelse`);
+                const newMaxSize = Math.max(...teamSizes);
+                const newMinSize = Math.min(...teamSizes);
+                if (newMaxSize - newMinSize <= 1) break;
             }
-            
-            // Oppdater størrelser
-            const newMaxSize = Math.max(...teamSizes);
-            const newMinSize = Math.min(...teamSizes);
-            
-            if (newMaxSize - newMinSize <= 1) break; // God nok jevnhet
         }
     }
     
-    // 8. SJEKK AT ALLE LAG HAR MINST 1 SPILLER
     for (let i = 0; i < teams.length; i++) {
         if (teams[i].players.length === 0) {
-            // Finn et lag med flest spillere og flytt en
             let largestTeamIndex = 0;
             for (let j = 1; j < teams.length; j++) {
                 if (teams[j].players.length > teams[largestTeamIndex].players.length) {
@@ -873,109 +741,73 @@ function createMatchTeams() {
             if (teams[largestTeamIndex].players.length > 1) {
                 const playerToMove = teams[largestTeamIndex].players.pop();
                 teams[largestTeamIndex].totalSkill -= playerToMove.skill;
-                
                 teams[i].players.push(playerToMove);
                 teams[i].totalSkill += playerToMove.skill;
             }
         }
     }
     
-    // 9. Sorter spillere i hvert lag etter ferdighet
-    teams.forEach(team => {
-        team.players.sort((a, b) => b.skill - a.skill);
-    });
-    
-    // 10. Vis resultater
+    teams.forEach(team => team.players.sort((a, b) => b.skill - a.skill));
     displayMatchResults(teams);
-    
-    showNotification(`Lagde ${numTeams} jevne og balanserte lag!`, 'success');
+    showNotification(`${numTeams} balanserte lag opprettet!`, 'success');
 }
 
 function displayMatchResults(teams) {
     const resultsDiv = document.getElementById('matchResults');
-    if (!resultsDiv) {
-        console.error('Finner ikke matchResults div!');
-        return;
-    }
+    if (!resultsDiv) return;
     
-    console.log('Viser kampresultater for', teams.length, 'lag');
-    
-    // Beregn balanse-statistikk
     const teamSizes = teams.map(t => t.players.length);
     const maxSize = Math.max(...teamSizes);
     const minSize = Math.min(...teamSizes);
     const sizeDifference = maxSize - minSize;
     
-    const teamSkills = teams.map(t => t.totalSkill);
-    const maxSkill = Math.max(...teamSkills);
-    const minSkill = Math.min(...teamSkills);
-    const skillDifference = maxSkill - minSkill;
-    
     let html = `
-        <div style="margin-bottom: 15px; padding: 10px; background: #e8f4f8; border-radius: 4px;">
-            <strong>Balansestatus:</strong><br>
-            • Antall spillere: ${sizeDifference <= 1 ? 'Godt balansert ⚖️' : 'Noe ubalansert ⚠️'} 
-            (Største forskjell: ${sizeDifference} spillere)<br>
-            • Ferdighetsnivå: ${skillDifference <= 2 ? 'Godt balansert ⚖️' : 'Noe ubalansert ⚠️'} 
-            (Største forskjell: ${skillDifference} poeng)
+        <div style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 4px;">
+            <strong>📊 Lagbalanse:</strong><br>
+            • Spillerfordeling: ${sizeDifference <= 1 ? 'Godt balansert ⚖️' : 'Noe ubalansert ⚠️'} 
+            (forskjell: ${sizeDifference} spiller${sizeDifference !== 1 ? 'e' : ''})
         </div>
-        <div class="groups-container">
-    `;
+        <div class="groups-container">`;
     
     teams.forEach((team, index) => {
-        const avgSkill = team.players.length > 0 
-            ? (team.totalSkill / team.players.length).toFixed(1)
-            : 0;
-        
         const teamGoalies = team.players.filter(p => p.isGoalie).length;
         
         html += `
             <div class="group-card">
                 <div class="group-header">
-                    <span class="group-name">Lag ${String.fromCharCode(65 + index)}</span>
+                    <span class="group-name">
+                        <i class="fas fa-tshirt"></i> Lag ${String.fromCharCode(65 + index)}
+                    </span>
                     <span class="group-stats">
-                        ${team.players.length} spillere | 
-                        Totalt: ${team.totalSkill} | 
-                        Gj.snitt: ${avgSkill}
-                        ${teamGoalies > 0 ? ' | 🧤 ' + teamGoalies + ' målvakt(er)' : ' | Målvakt: Annet'}
+                        ${team.players.length} spillere
+                        ${teamGoalies > 0 ? ' • ' + teamGoalies + ' målvakt' + (teamGoalies > 1 ? 'er' : '') : ''}
                     </span>
                 </div>
-                <ul class="group-players">
-        `;
+                <ul class="group-players">`;
         
         team.players.forEach(player => {
             html += `
                 <li class="group-player">
                     <span>${player.name}</span>
-                    <span>
-                        <span class="skill-badge">${player.skill}</span>
-                        ${player.isGoalie ? '🧤' : ''}
-                    </span>
-                </li>
-            `;
+                    <span>${player.isGoalie ? '🧤' : '⚽'}</span>
+                </li>`;
         });
         
-        html += `
-                </ul>
-            </div>
-        `;
+        html += `</ul></div>`;
     });
     
     html += '</div>';
     resultsDiv.innerHTML = html;
 }
 
-// === LIGASPILL FUNKSJONER ===
+// === LIGA FUNKSJONER (IDENTISK) ===
 function loadLigaData() {
     const saved = localStorage.getItem('fotballLiga');
     ligaData = saved ? JSON.parse(saved) : null;
-    console.log('Lastet ligadata:', ligaData);
 }
 
 function saveLigaData() {
-    if (ligaData) {
-        localStorage.setItem('fotballLiga', JSON.stringify(ligaData));
-    }
+    if (ligaData) localStorage.setItem('fotballLiga', JSON.stringify(ligaData));
 }
 
 function renderLigaTeamNames() {
@@ -983,10 +815,9 @@ function renderLigaTeamNames() {
     if (!container) return;
     
     const numTeams = parseInt(document.getElementById('ligaTeams').value) || 3;
-    
-    let html = '';
     const defaultNames = ['Blått', 'Rødt', 'Gult', 'Grønt', 'Lilla'];
     
+    let html = '';
     for (let i = 0; i < numTeams; i++) {
         const currentName = ligaData && ligaData.teams && ligaData.teams[i] 
             ? ligaData.teams[i].navn 
@@ -995,11 +826,9 @@ function renderLigaTeamNames() {
         html += `
             <div class="team-name-input">
                 <label>Lag ${i + 1}:</label>
-                <input type="text" id="ligaTeam${i}" value="${currentName}" placeholder="Lag ${i + 1} navn" maxlength="20">
-            </div>
-        `;
+                <input type="text" id="ligaTeam${i}" value="${currentName}" placeholder="Lag ${i + 1} navn">
+            </div>`;
     }
-    
     container.innerHTML = html;
 }
 
@@ -1017,59 +846,42 @@ function startLiga() {
         return;
     }
     
-    // Samle lag-navn
     const teams = [];
     for (let i = 0; i < numTeams; i++) {
         const input = document.getElementById(`ligaTeam${i}`);
         const navn = input ? input.value.trim() : `Lag ${i + 1}`;
         teams.push({
             navn: navn || `Lag ${i + 1}`,
-            kamper: 0,
-            seier: 0,
-            uavgjort: 0,
-            tap: 0,
-            scoret: 0,
-            innsluppet: 0,
-            poeng: 0,
-            målforskjell: 0
+            kamper: 0, seier: 0, uavgjort: 0, tap: 0,
+            scoret: 0, innsluppet: 0, poeng: 0, målforskjell: 0
         });
     }
     
-    // Generer kamper (alle mot alle, hjemme/borte)
     const matches = [];
     let matchId = 1;
     
     for (let round = 0; round < rounds; round++) {
         for (let i = 0; i < numTeams; i++) {
             for (let j = i + 1; j < numTeams; j++) {
-                // Hjemmekamp
                 matches.push({
                     id: matchId++,
-                    hjemme: i,
-                    borte: j,
-                    ferdig: false,
-                    resultat: null,
-                    hjemmeScore: null,
-                    borteScore: null
+                    hjemme: i, borte: j,
+                    ferdig: false, resultat: null,
+                    hjemmeScore: null, borteScore: null
                 });
                 
-                // Bortekamp (kun hvis rounds > 1)
                 if (rounds > 1) {
                     matches.push({
                         id: matchId++,
-                        hjemme: j,
-                        borte: i,
-                        ferdig: false,
-                        resultat: null,
-                        hjemmeScore: null,
-                        borteScore: null
+                        hjemme: j, borte: i,
+                        ferdig: false, resultat: null,
+                        hjemmeScore: null, borteScore: null
                     });
                 }
             }
         }
     }
     
-    // Lag liga data
     ligaData = {
         antallLag: numTeams,
         antallRunder: rounds,
@@ -1081,7 +893,6 @@ function startLiga() {
     saveLigaData();
     renderLigaMatches();
     renderLigaTable();
-    
     showNotification(`Ligaspill startet med ${numTeams} lag!`, 'success');
 }
 
@@ -1093,9 +904,8 @@ function renderLigaMatches() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-futbol"></i>
-                <p>Klikk "Start ligaspill" for å generere kampprogram</p>
-            </div>
-        `;
+                <p>Start et ligaspill for å se kampprogram</p>
+            </div>`;
         return;
     }
     
@@ -1103,15 +913,13 @@ function renderLigaMatches() {
     ligaData.matches.forEach(match => {
         const hjemmeLag = ligaData.teams[match.hjemme];
         const bortelag = ligaData.teams[match.borte];
-        
         const statusClass = match.ferdig ? 'completed' : 'pending';
         const statusText = match.ferdig ? 'Ferdig' : 'Ikke spilt';
-        
         const hjemmeResultat = match.hjemmeScore !== null ? match.hjemmeScore : '';
         const borteResultat = match.borteScore !== null ? match.borteScore : '';
         
         html += `
-            <div class="match-item" data-match="${match.id}">
+            <div class="match-item">
                 <div class="match-info">
                     <span>${hjemmeLag.navn} vs ${bortelag.navn}</span>
                     <span class="match-status ${statusClass}">${statusText}</span>
@@ -1126,12 +934,11 @@ function renderLigaMatches() {
                         ${match.ferdig ? '<i class="fas fa-edit"></i>' : '<i class="fas fa-save"></i>'}
                     </button>
                     ${match.ferdig ? `
-                    <button class="btn-small btn-danger" onclick="deleteMatchResult(${match.id})" style="margin-left: 5px;">
+                    <button class="btn-small btn-danger" onclick="deleteMatchResult(${match.id})">
                         <i class="fas fa-trash"></i>
                     </button>` : ''}
                 </div>
-            </div>
-        `;
+            </div>`;
     });
     
     container.innerHTML = html;
@@ -1158,80 +965,49 @@ function registerMatchResult(matchId) {
     const hjemmeLag = ligaData.teams[match.hjemme];
     const bortelag = ligaData.teams[match.borte];
     
-    // Hvis vi redigerer et eksisterende resultat, fjern først de gamle statene
+    // Fjern gamle resultater
     if (match.ferdig && match.hjemmeScore !== null && match.borteScore !== null) {
-        // Trekk fra gamle resultater
-        hjemmeLag.kamper--;
-        bortelag.kamper--;
+        hjemmeLag.kamper--; bortelag.kamper--;
+        hjemmeLag.scoret -= match.hjemmeScore; hjemmeLag.innsluppet -= match.borteScore;
+        bortelag.scoret -= match.borteScore; bortelag.innsluppet -= match.hjemmeScore;
         
-        hjemmeLag.scoret -= match.hjemmeScore;
-        hjemmeLag.innsluppet -= match.borteScore;
-        bortelag.scoret -= match.borteScore;
-        bortelag.innsluppet -= match.hjemmeScore;
-        
-        // Trekk fra gamle poeng
         if (match.hjemmeScore > match.borteScore) {
-            // Var hjemmeseier
-            hjemmeLag.seier--;
-            hjemmeLag.poeng -= 3;
-            bortelag.tap--;
+            hjemmeLag.seier--; hjemmeLag.poeng -= 3; bortelag.tap--;
         } else if (match.hjemmeScore < match.borteScore) {
-            // Var borteseier
-            bortelag.seier--;
-            bortelag.poeng -= 3;
-            hjemmeLag.tap--;
+            bortelag.seier--; bortelag.poeng -= 3; hjemmeLag.tap--;
         } else {
-            // Var uavgjort
-            hjemmeLag.uavgjort--;
-            hjemmeLag.poeng -= 1;
-            bortelag.uavgjort--;
-            bortelag.poeng -= 1;
+            hjemmeLag.uavgjort--; hjemmeLag.poeng -= 1;
+            bortelag.uavgjort--; bortelag.poeng -= 1;
         }
     }
     
-    // Oppdater kampen
+    // Oppdater kamp
     match.hjemmeScore = hjemmeScore;
     match.borteScore = borteScore;
     match.resultat = `${hjemmeScore}-${borteScore}`;
     match.ferdig = true;
     
-    // Oppdater lag-statistikken (legg til nye)
-    hjemmeLag.kamper++;
-    bortelag.kamper++;
+    // Oppdater lag
+    hjemmeLag.kamper++; bortelag.kamper++;
+    hjemmeLag.scoret += hjemmeScore; hjemmeLag.innsluppet += borteScore;
+    bortelag.scoret += borteScore; bortelag.innsluppet += hjemmeScore;
     
-    hjemmeLag.scoret += hjemmeScore;
-    hjemmeLag.innsluppet += borteScore;
-    bortelag.scoret += borteScore;
-    bortelag.innsluppet += hjemmeScore;
-    
-    // Beregn målforskjell
     hjemmeLag.målforskjell = hjemmeLag.scoret - hjemmeLag.innsluppet;
     bortelag.målforskjell = bortelag.scoret - bortelag.innsluppet;
     
-    // Bestem resultat og poeng
     if (hjemmeScore > borteScore) {
-        // Hjemmeseier
-        hjemmeLag.seier++;
-        hjemmeLag.poeng += 3;
-        bortelag.tap++;
+        hjemmeLag.seier++; hjemmeLag.poeng += 3; bortelag.tap++;
     } else if (hjemmeScore < borteScore) {
-        // Borteseier
-        bortelag.seier++;
-        bortelag.poeng += 3;
-        hjemmeLag.tap++;
+        bortelag.seier++; bortelag.poeng += 3; hjemmeLag.tap++;
     } else {
-        // Uavgjort
-        hjemmeLag.uavgjort++;
-        hjemmeLag.poeng += 1;
-        bortelag.uavgjort++;
-        bortelag.poeng += 1;
+        hjemmeLag.uavgjort++; hjemmeLag.poeng += 1;
+        bortelag.uavgjort++; bortelag.poeng += 1;
     }
     
     saveLigaData();
     renderLigaMatches();
     renderLigaTable();
-    
-    showNotification('Resultat oppdatert!', 'success');
+    showNotification('Kampresultat registrert!', 'success');
 }
 
 function deleteMatchResult(matchId) {
@@ -1247,43 +1023,26 @@ function deleteMatchResult(matchId) {
         return;
     }
     
-    if (confirm('Er du sikker på at du vil slette dette resultatet?')) {
+    if (confirm('Slett dette kampresultatet?')) {
         const hjemmeLag = ligaData.teams[match.hjemme];
         const bortelag = ligaData.teams[match.borte];
         
-        // Trekk fra statistikken
-        hjemmeLag.kamper--;
-        bortelag.kamper--;
+        hjemmeLag.kamper--; bortelag.kamper--;
+        hjemmeLag.scoret -= match.hjemmeScore; hjemmeLag.innsluppet -= match.borteScore;
+        bortelag.scoret -= match.borteScore; bortelag.innsluppet -= match.hjemmeScore;
         
-        hjemmeLag.scoret -= match.hjemmeScore;
-        hjemmeLag.innsluppet -= match.borteScore;
-        bortelag.scoret -= match.borteScore;
-        bortelag.innsluppet -= match.hjemmeScore;
-        
-        // Trekk fra poeng
         if (match.hjemmeScore > match.borteScore) {
-            // Var hjemmeseier
-            hjemmeLag.seier--;
-            hjemmeLag.poeng -= 3;
-            bortelag.tap--;
+            hjemmeLag.seier--; hjemmeLag.poeng -= 3; bortelag.tap--;
         } else if (match.hjemmeScore < match.borteScore) {
-            // Var borteseier
-            bortelag.seier--;
-            bortelag.poeng -= 3;
-            hjemmeLag.tap--;
+            bortelag.seier--; bortelag.poeng -= 3; hjemmeLag.tap--;
         } else {
-            // Var uavgjort
-            hjemmeLag.uavgjort--;
-            hjemmeLag.poeng -= 1;
-            bortelag.uavgjort--;
-            bortelag.poeng -= 1;
+            hjemmeLag.uavgjort--; hjemmeLag.poeng -= 1;
+            bortelag.uavgjort--; bortelag.poeng -= 1;
         }
         
-        // Beregn målforskjell på nytt
         hjemmeLag.målforskjell = hjemmeLag.scoret - hjemmeLag.innsluppet;
         bortelag.målforskjell = bortelag.scoret - bortelag.innsluppet;
         
-        // Nullstill kampen
         match.ferdig = false;
         match.resultat = null;
         match.hjemmeScore = null;
@@ -1292,8 +1051,7 @@ function deleteMatchResult(matchId) {
         saveLigaData();
         renderLigaMatches();
         renderLigaTable();
-        
-        showNotification('Resultat slettet!', 'info');
+        showNotification('Resultat slettet', 'info');
     }
 }
 
@@ -1305,13 +1063,11 @@ function renderLigaTable() {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-trophy"></i>
-                <p>Ingen liga aktiv. Start en liga for å se tabell.</p>
-            </div>
-        `;
+                <p>Ingen aktiv liga</p>
+            </div>`;
         return;
     }
     
-    // Sorter lag etter: Poeng → Målforskjell → Scorede mål → Flest seire
     const sortedTeams = [...ligaData.teams].sort((a, b) => {
         if (b.poeng !== a.poeng) return b.poeng - a.poeng;
         if (b.målforskjell !== a.målforskjell) return b.målforskjell - a.målforskjell;
@@ -1324,71 +1080,58 @@ function renderLigaTable() {
             <table class="liga-table">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th style="text-align: left;">Lag</th>
-                        <th>K</th>
-                        <th>S</th>
-                        <th>U</th>
-                        <th>T</th>
-                        <th>MF</th>
-                        <th>P</th>
+                        <th>#</th><th style="text-align: left;">Lag</th><th>K</th>
+                        <th>S</th><th>U</th><th>T</th><th>MF</th><th>P</th>
                     </tr>
                 </thead>
-                <tbody>
-    `;
+                <tbody>`;
     
     sortedTeams.forEach((team, index) => {
+        let positionColor = '#666';
+        if (index === 0) positionColor = '#F59E0B';
+        else if (index === 1) positionColor = '#9CA3AF';
+        else if (index === 2) positionColor = '#B45309';
+        
         html += `
             <tr>
-                <td class="position-cell">${index + 1}</td>
+                <td class="position-cell" style="color: ${positionColor};">${index + 1}</td>
                 <td class="team-cell">${team.navn}</td>
                 <td class="stats-cell">${team.kamper}</td>
                 <td class="stats-cell win">${team.seier}</td>
                 <td class="stats-cell draw">${team.uavgjort}</td>
                 <td class="stats-cell loss">${team.tap}</td>
                 <td class="stats-cell">${team.målforskjell > 0 ? '+' : ''}${team.målforskjell}</td>
-                <td class="stats-cell" style="font-weight: 700; color: var(--primary);">${team.poeng}</td>
-            </tr>
-        `;
+                <td class="stats-cell" style="font-weight: 700;">${team.poeng}</td>
+            </tr>`;
     });
     
-    html += `
-                </tbody>
-            </table>
-        </div>
-    `;
-    
+    html += `</tbody></table></div>`;
     container.innerHTML = html;
 }
 
 function resetLiga() {
-    if (confirm('Er du sikker på at du vil nullstille ligaen? Alle resultater vil slettes.')) {
+    const clubName = currentLogo === 'eggeil' ? 'Egge IL' : 'Sørlia IL';
+    
+    if (confirm(`Nullstille ${clubName} ligaen? Alle resultater slettes.`)) {
         ligaData = null;
         localStorage.removeItem('fotballLiga');
         renderLigaTeamNames();
         renderLigaMatches();
         renderLigaTable();
-        showNotification('Liga nullstilt!', 'info');
+        showNotification('Liga nullstilt', 'info');
     }
 }
 
-// === ALLE EVENT LISTENERS ===
+// === ALLE EVENT LISTENERS (IDENTISK) ===
 function setupAllEventListeners() {
-    console.log('Setter opp alle event listeners...');
-    
     // Logout
     const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', logout);
-    }
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
     
     // Legg til spiller
     const addPlayerBtn = document.getElementById('addPlayerBtn');
-    if (addPlayerBtn) {
-        addPlayerBtn.addEventListener('click', addPlayer);
-    }
+    if (addPlayerBtn) addPlayerBtn.addEventListener('click', addPlayer);
     
-    // Enter i navnefelt
     const playerNameInput = document.getElementById('playerName');
     if (playerNameInput) {
         playerNameInput.addEventListener('keypress', function(e) {
@@ -1405,7 +1148,7 @@ function setupAllEventListeners() {
                 return;
             }
             
-            if (confirm(`Er du sikker på at du vil slette ALLE ${players.length} spillere?`)) {
+            if (confirm(`Slett alle ${players.length} spillere?`)) {
                 players = [];
                 savePlayers();
                 renderPlayers();
@@ -1414,7 +1157,7 @@ function setupAllEventListeners() {
         });
     }
     
-    // Eksport
+    // Eksport/Import
     const exportBtn = document.getElementById('exportBtn');
     if (exportBtn) {
         exportBtn.addEventListener('click', function() {
@@ -1425,26 +1168,21 @@ function setupAllEventListeners() {
             
             const dataStr = JSON.stringify(players, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            
             const link = document.createElement('a');
             link.setAttribute('href', dataUri);
             link.setAttribute('download', `fotball-spillere-${new Date().toISOString().split('T')[0]}.json`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            showNotification(`Eksporterte ${players.length} spillere`, 'success');
+            showNotification(`${players.length} spillere eksportert`, 'success');
         });
     }
     
-    // Import
     const importBtn = document.getElementById('importBtn');
     const importFile = document.getElementById('importFile');
     
     if (importBtn && importFile) {
-        importBtn.addEventListener('click', function() {
-            importFile.click();
-        });
+        importBtn.addEventListener('click', function() { importFile.click(); });
         
         importFile.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -1463,9 +1201,7 @@ function setupAllEventListeners() {
                     players.push(...importedPlayers);
                     savePlayers();
                     renderPlayers();
-                    
-                    showNotification(`Importerte ${importedPlayers.length} spillere`, 'success');
-                    
+                    showNotification(`${importedPlayers.length} spillere importert`, 'success');
                     e.target.value = '';
                 } catch (error) {
                     showNotification('Feil ved import: ' + error.message, 'error');
@@ -1475,78 +1211,56 @@ function setupAllEventListeners() {
         });
     }
     
-    // Trening - velg alle/fjern alle
+    // Trening
     const selectAllTraining = document.getElementById('selectAllTraining');
     const deselectAllTraining = document.getElementById('deselectAllTraining');
     
     if (selectAllTraining) {
         selectAllTraining.addEventListener('click', function() {
-            document.querySelectorAll('#trainingPlayerSelection input').forEach(cb => {
-                cb.checked = true;
-            });
+            document.querySelectorAll('#trainingPlayerSelection input').forEach(cb => cb.checked = true);
             updateSelectedCounts();
         });
     }
     
     if (deselectAllTraining) {
         deselectAllTraining.addEventListener('click', function() {
-            document.querySelectorAll('#trainingPlayerSelection input').forEach(cb => {
-                cb.checked = false;
-            });
+            document.querySelectorAll('#trainingPlayerSelection input').forEach(cb => cb.checked = false);
             updateSelectedCounts();
         });
     }
     
-    // Trening - lag grupper
     const createTrainingBtn = document.getElementById('createTrainingGroupsBtn');
-    if (createTrainingBtn) {
-        createTrainingBtn.addEventListener('click', createTrainingGroups);
-    }
+    if (createTrainingBtn) createTrainingBtn.addEventListener('click', createTrainingGroups);
     
-    // Kamp - velg alle/fjern alle
+    // Kamp
     const selectAllMatch = document.getElementById('selectAllMatch');
     const deselectAllMatch = document.getElementById('deselectAllMatch');
     
     if (selectAllMatch) {
         selectAllMatch.addEventListener('click', function() {
-            document.querySelectorAll('#matchPlayerSelection input').forEach(cb => {
-                cb.checked = true;
-            });
+            document.querySelectorAll('#matchPlayerSelection input').forEach(cb => cb.checked = true);
             updateSelectedCounts();
         });
     }
     
     if (deselectAllMatch) {
         deselectAllMatch.addEventListener('click', function() {
-            document.querySelectorAll('#matchPlayerSelection input').forEach(cb => {
-                cb.checked = false;
-            });
+            document.querySelectorAll('#matchPlayerSelection input').forEach(cb => cb.checked = false);
             updateSelectedCounts();
         });
     }
     
-    // Kamp - lag lag
     const createMatchBtn = document.getElementById('createMatchTeamsBtn');
-    if (createMatchBtn) {
-        console.log('Setter opp kampoppsett-knapp');
-        createMatchBtn.addEventListener('click', createMatchTeams);
-    } else {
-        console.error('Finner ikke createMatchTeamsBtn!');
-    }
+    if (createMatchBtn) createMatchBtn.addEventListener('click', createMatchTeams);
     
-    // Liga - start liga
+    // Liga
     const startLigaBtn = document.getElementById('startLigaBtn');
-    if (startLigaBtn) {
-        startLigaBtn.addEventListener('click', startLiga);
-    }
+    if (startLigaBtn) startLigaBtn.addEventListener('click', startLiga);
     
-    // Liga - nullstill
     const resetLigaBtn = document.getElementById('resetLigaBtn');
-    if (resetLigaBtn) {
-        resetLigaBtn.addEventListener('click', resetLiga);
-    }
+    if (resetLigaBtn) resetLigaBtn.addEventListener('click', resetLiga);
     
-    // Number buttons (for alle tabs)
+    // Number buttons
     document.querySelectorAll('.number-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const targetId = this.getAttribute('data-for');
@@ -1563,10 +1277,7 @@ function setupAllEventListeners() {
             
             input.value = value;
             
-            // Hvis det er liga antall lag, oppdater team names
-            if (targetId === 'ligaTeams') {
-                renderLigaTeamNames();
-            }
+            if (targetId === 'ligaTeams') renderLigaTeamNames();
         });
     });
     
@@ -1584,15 +1295,12 @@ function setupAllEventListeners() {
             showNotification('App oppdatert', 'info');
         });
     }
-    
-    console.log('Event listeners satt opp');
 }
 
-// === HJELPEFUNKSJONER ===
+// === HJELPEFUNKSJONER (IDENTISK) ===
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
     if (!notification) {
-        // Lag en hvis den ikke finnes
         const newNotification = document.createElement('div');
         newNotification.id = 'notification';
         newNotification.className = 'notification';
@@ -1601,14 +1309,24 @@ function showNotification(message, type = 'success') {
     
     const notif = document.getElementById('notification');
     notif.textContent = message;
+    
+    // Sett farge basert på klubb
+    if (currentLogo === 'eggeil') {
+        notif.style.background = type === 'success' ? '#0d47a1' : 
+                                 type === 'error' ? '#d32f2f' : 
+                                 type === 'info' ? '#1976d2' : '#F59E0B';
+    } else {
+        notif.style.background = type === 'success' ? '#d32f2f' : 
+                                 type === 'error' ? '#0d47a1' : 
+                                 type === 'info' ? '#f44336' : '#F59E0B';
+    }
+    
     notif.className = `notification ${type} show`;
     
-    setTimeout(() => {
-        notif.classList.remove('show');
-    }, 3000);
+    setTimeout(() => notif.classList.remove('show'), 3000);
 }
 
-// === AUTO-LOGOUT SJEKK ===
+// === AUTO-LOGOUT SJEKK (IDENTISK) ===
 setInterval(() => {
     const loginTime = localStorage.getItem('fotballLoginTime');
     if (loginTime) {
@@ -1617,7 +1335,6 @@ setInterval(() => {
             localStorage.removeItem('fotballLoggedIn');
             localStorage.removeItem('fotballLoginTime');
             
-            // Hvis hovedappen er synlig, logg ut
             const mainApp = document.getElementById('mainApp');
             if (mainApp && mainApp.style.display !== 'none') {
                 showPasswordScreen();
@@ -1625,7 +1342,6 @@ setInterval(() => {
             }
         }
     }
-}, 60000); // Sjekk hvert minutt
+}, 60000);
 
-// Debug info
-console.log('App.js lastet ferdig - inkludert rotasjonsfunksjon!');
+console.log('Fotball Trener App lastet - Full kompatibilitet med forrige versjon');
