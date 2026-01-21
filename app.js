@@ -1,4 +1,4 @@
-// Fotball Trener App - Endelig versjon med alle fikser
+// Fotball Trener App - Ferdig versjon med alle fikser
 // Passord: "1234"
 
 // === GLOBALE VARIABLER ===
@@ -447,15 +447,13 @@ function setupTabs() {
         });
     });
     
-    console.log('Tabs satt upp:', tabButtons.length, 'stk');
+    console.log('Tabs satt opp:', tabButtons.length, 'stk');
 }
 
-// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN I SAMME GRUPPE)
+// === TRENINGSGRUPPER === (DE BESTE SPILLERNE SAMMEN)
 function createTrainingGroups() {
     const selectedCheckboxes = document.querySelectorAll('#trainingPlayerSelection input:checked');
     const selectedIndexes = Array.from(selectedCheckboxes).map(input => parseInt(input.value));
-    
-    console.log('Valgte spillere for trening:', selectedIndexes);
     
     if (selectedIndexes.length < 2) {
         showNotification('Velg minst 2 spillere for trening', 'error');
@@ -465,7 +463,6 @@ function createTrainingGroups() {
     const groupsInput = document.getElementById('trainingGroups');
     const numGroups = groupsInput ? parseInt(groupsInput.value) : 2;
     
-    // Tillat 2-6 grupper (inkludert 3 og 5)
     if (numGroups < 2 || numGroups > 6) {
         showNotification('Velg mellom 2 og 6 grupper', 'error');
         return;
@@ -481,7 +478,7 @@ function createTrainingGroups() {
     // SORTER spillere etter ferdighet (BESTE FØRST)
     selectedPlayers.sort((a, b) => b.skill - a.skill);
     
-    console.log('Sorterte spillere for trening:', selectedPlayers.map(p => `${p.name} (${p.skill})`));
+    console.log('Sorterte spillere (beste først):', selectedPlayers.map(p => `${p.name} (${p.skill})`));
     
     // Lag grupper
     const groups = Array.from({ length: numGroups }, () => ({
@@ -491,47 +488,42 @@ function createTrainingGroups() {
         groupQuality: ''
     }));
     
-    // NY ALGORITME: BESTE SPILLERE SAMMEN I SAMME GRUPPE
-    // Fordel spillere i "snake"-mønster for å få de beste i samme gruppe
-    let direction = 1; // 1 = fremover, -1 = bakover
-    let currentGroup = 0;
+    // ENKEL ALGORITME: GRUPPE 1 FÅR DE BESTE SPILLERNE
+    // Beregn hvor mange spillere hver gruppe skal ha
+    const basePlayersPerGroup = Math.floor(selectedPlayers.length / numGroups);
+    const remainder = selectedPlayers.length % numGroups;
     
-    selectedPlayers.forEach((player, index) => {
-        // Legg spilleren til i gjeldende gruppe
-        groups[currentGroup].players.push(player);
-        groups[currentGroup].totalSkill += player.skill;
-        if (player.isGoalie) groups[currentGroup].goalies++;
+    const groupSizes = [];
+    for (let i = 0; i < numGroups; i++) {
+        groupSizes[i] = basePlayersPerGroup + (i < remainder ? 1 : 0);
+    }
+    
+    console.log('Gruppestørrelser:', groupSizes);
+    
+    // Fordel spillere - GRUPPE 1 FÅR DE FØRSTE (BESTE) SPILLERNE
+    let playerIndex = 0;
+    
+    for (let groupNum = 0; groupNum < numGroups; groupNum++) {
+        const targetSize = groupSizes[groupNum];
         
-        // Bestem neste gruppe
-        if (direction === 1) {
-            // Gå til neste gruppe
-            if (currentGroup === numGroups - 1) {
-                // Vi er på siste gruppe, bytt retning
-                direction = -1;
-            } else {
-                currentGroup++;
-            }
-        } else {
-            // Gå til forrige gruppe
-            if (currentGroup === 0) {
-                // Vi er på første gruppe, bytt retning
-                direction = 1;
-                currentGroup = 1;
-            } else {
-                currentGroup--;
-            }
+        for (let i = 0; i < targetSize && playerIndex < selectedPlayers.length; i++) {
+            const player = selectedPlayers[playerIndex];
+            groups[groupNum].players.push(player);
+            groups[groupNum].totalSkill += player.skill;
+            if (player.isGoalie) groups[groupNum].goalies++;
+            playerIndex++;
         }
-    });
+    }
     
-    // Sorter gruppene etter total ferdighet for å gi dem kvalitet
+    // Sorter gruppene etter total ferdighet (gruppe 1 vil alltid være øverst)
     groups.sort((a, b) => b.totalSkill - a.totalSkill);
     
-    // Sett gruppekvalitet - DE BESTE SPILLERNE SKAL VÆRE SAMMEN
+    // Sett gruppekvalitet
     groups.forEach((group, index) => {
         if (index === 0) {
-            group.groupQuality = 'sterk'; // Denne gruppen har de beste spillerne
+            group.groupQuality = 'sterk'; // Denne har de BESTE spillerne
         } else if (index === groups.length - 1) {
-            group.groupQuality = 'svak'; // Denne gruppen har de svakeste spillerne
+            group.groupQuality = 'svak'; // Denne har de SVAKESTE spillerne
         } else {
             group.groupQuality = 'middels';
         }
@@ -540,7 +532,7 @@ function createTrainingGroups() {
     // Vis resultater
     displayTrainingResults(groups);
     
-    showNotification(`Lagde ${numGroups} treningsgrupper (beste spillere sammen)`, 'success');
+    showNotification(`Lagde ${numGroups} treningsgrupper! Gruppe 1 har de beste spillerne.`, 'success');
 }
 
 function displayTrainingResults(groups) {
@@ -604,7 +596,7 @@ function displayTrainingResults(groups) {
     resultsDiv.innerHTML = html;
 }
 
-// === KAMPOPPSETT === (BALANSERT FORDELING AV ANTALL SPILLERE)
+// === KAMPOPPSETT === (BALANSERT ANTALL SPILLERE)
 function createMatchTeams() {
     console.log('Starter lag kampoppsett...');
     
@@ -688,45 +680,60 @@ function createMatchTeams() {
     }
     
     // 5. Fordel resten av spillerne - BALANSERT ANTALL
-    // Snake-fordeling for balanse både i antall og ferdighet
+    // Beregn målgruppestørrelser
+    const targetSizes = [];
+    for (let i = 0; i < numTeams; i++) {
+        targetSizes[i] = basePlayersPerTeam + (i < remainder ? 1 : 0);
+    }
+    
+    // Juster for målvakter som allerede er fordelt
+    for (let i = 0; i < numTeams; i++) {
+        const goaliesInTeam = teams[i].players.filter(p => p.isGoalie).length;
+        targetSizes[i] = Math.max(targetSizes[i], goaliesInTeam);
+    }
+    
+    console.log('Målgruppestørrelser etter målvaktjustering:', targetSizes);
+    
+    // Fordel spillerne snake-style for balanse
     let direction = 1; // 1 = fremover, -1 = bakover
     let currentTeam = 0;
     
     sortedPlayers.forEach((player, index) => {
-        // Sjekk om dette laget allerede har nok spillere
-        const targetSize = basePlayersPerTeam + (currentTeam < remainder ? 1 : 0);
+        // Finn et lag som trenger flere spillere
+        let foundTeam = false;
         
-        if (teams[currentTeam].players.length >= targetSize) {
-            // Dette laget har allerede nok spillere, finn et annet lag
-            for (let i = 0; i < numTeams; i++) {
-                const checkIndex = (currentTeam + i) % numTeams;
-                const checkSize = basePlayersPerTeam + (checkIndex < remainder ? 1 : 0);
-                if (teams[checkIndex].players.length < checkSize) {
-                    currentTeam = checkIndex;
-                    break;
+        for (let attempts = 0; attempts < numTeams * 2; attempts++) {
+            if (teams[currentTeam].players.length < targetSizes[currentTeam]) {
+                // Dette laget har plass
+                teams[currentTeam].players.push(player);
+                teams[currentTeam].totalSkill += player.skill;
+                foundTeam = true;
+                break;
+            }
+            
+            // Gå til neste lag
+            if (direction === 1) {
+                currentTeam = (currentTeam + 1) % numTeams;
+            } else {
+                currentTeam = (currentTeam - 1 + numTeams) % numTeams;
+            }
+        }
+        
+        // Hvis vi ikke fant et lag med plass, legg til i det med færrest spillere
+        if (!foundTeam) {
+            let smallestTeamIndex = 0;
+            for (let i = 1; i < numTeams; i++) {
+                if (teams[i].players.length < teams[smallestTeamIndex].players.length) {
+                    smallestTeamIndex = i;
                 }
             }
+            
+            teams[smallestTeamIndex].players.push(player);
+            teams[smallestTeamIndex].totalSkill += player.skill;
         }
         
-        // Legg til spilleren
-        teams[currentTeam].players.push(player);
-        teams[currentTeam].totalSkill += player.skill;
-        
-        // Gå til neste lag (snake-mønster)
-        if (direction === 1) {
-            if (currentTeam === numTeams - 1) {
-                direction = -1;
-            } else {
-                currentTeam++;
-            }
-        } else {
-            if (currentTeam === 0) {
-                direction = 1;
-                currentTeam = 1;
-            } else {
-                currentTeam--;
-            }
-        }
+        // Bytt retning for variasjon
+        direction = -direction;
     });
     
     // 6. Sjekk at alle lag har minst 1 spiller
@@ -1484,7 +1491,7 @@ function setupAllEventListeners() {
         });
     }
     
-    console.log('Event listeners satt upp');
+    console.log('Event listeners satt opp');
 }
 
 // === HJELPEFUNKSJONER ===
