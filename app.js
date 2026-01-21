@@ -1,4 +1,4 @@
-// Fotball Trener App - Fullstendig versjon
+// Fotball Trener App - Fullstendig versjon med rotasjonsfunksjonalitet
 // Passord: "1234"
 
 // === GLOBALE VARIABLER ===
@@ -449,7 +449,7 @@ function setupTabs() {
     console.log('Tabs satt opp:', tabButtons.length, 'stk');
 }
 
-// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN - ENKEL VERSJON)
+// === TRENINGSGRUPPER === (BESTE SPILLERE SAMMEN MED ROTASJON)
 function createTrainingGroups() {
     const selectedCheckboxes = document.querySelectorAll('#trainingPlayerSelection input:checked');
     const selectedIndexes = Array.from(selectedCheckboxes).map(input => parseInt(input.value));
@@ -479,6 +479,38 @@ function createTrainingGroups() {
     
     console.log('Sorterte spillere (beste først):', selectedPlayers.map(p => `${p.name} (${p.skill})`));
     
+    // GRUPPER SPILLERE ETTER FERDIGHETSNIVÅ
+    const playersBySkill = {};
+    selectedPlayers.forEach(player => {
+        if (!playersBySkill[player.skill]) {
+            playersBySkill[player.skill] = [];
+        }
+        playersBySkill[player.skill].push(player);
+    });
+    
+    // BLAND SPILLERE PÅ SAMME NIVÅ FOR ROTASJON
+    for (const skillLevel in playersBySkill) {
+        if (playersBySkill[skillLevel].length > 1) {
+            // Bland spillere på samme nivå
+            const shuffled = [...playersBySkill[skillLevel]];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            playersBySkill[skillLevel] = shuffled;
+        }
+    }
+    
+    // BYGG TILBAKE DEN SORTERTE LISTEN MED BLANDEDE SPILLERE PÅ SAMME NIVÅ
+    const shuffledSelectedPlayers = [];
+    const skillLevels = Object.keys(playersBySkill).sort((a, b) => b - a); // Høyeste først
+    
+    skillLevels.forEach(skill => {
+        shuffledSelectedPlayers.push(...playersBySkill[skill]);
+    });
+    
+    console.log('Blandet spillere på samme nivå:', shuffledSelectedPlayers.map(p => `${p.name} (${p.skill})`));
+    
     // Lag grupper
     const groups = Array.from({ length: numGroups }, () => ({
         players: [],
@@ -487,10 +519,10 @@ function createTrainingGroups() {
         groupQuality: ''
     }));
     
-    // ENKEL ALGORITME: GRUPPE 1 FÅR DE BESTE SPILLERNE
+    // ALGORITME: GRUPPE 1 FÅR DE BESTE SPILLERNE (men blandet innenfor nivå)
     // Beregn hvor mange spillere hver gruppe skal ha
-    const basePlayersPerGroup = Math.floor(selectedPlayers.length / numGroups);
-    const remainder = selectedPlayers.length % numGroups;
+    const basePlayersPerGroup = Math.floor(shuffledSelectedPlayers.length / numGroups);
+    const remainder = shuffledSelectedPlayers.length % numGroups;
     
     const groupSizes = [];
     for (let i = 0; i < numGroups; i++) {
@@ -500,13 +532,14 @@ function createTrainingGroups() {
     console.log('Gruppestørrelser:', groupSizes);
     
     // Fordel spillere - GRUPPE 1 FÅR DE FØRSTE (BESTE) SPILLERNE
+    // MEN nå er spillere på samme nivå blandet, så vi får rotasjon
     let playerIndex = 0;
     
     for (let groupNum = 0; groupNum < numGroups; groupNum++) {
         const targetSize = groupSizes[groupNum];
         
-        for (let i = 0; i < targetSize && playerIndex < selectedPlayers.length; i++) {
-            const player = selectedPlayers[playerIndex];
+        for (let i = 0; i < targetSize && playerIndex < shuffledSelectedPlayers.length; i++) {
+            const player = shuffledSelectedPlayers[playerIndex];
             groups[groupNum].players.push(player);
             groups[groupNum].totalSkill += player.skill;
             if (player.isGoalie) groups[groupNum].goalies++;
@@ -531,7 +564,7 @@ function createTrainingGroups() {
     // Vis resultater
     displayTrainingResults(groups);
     
-    showNotification(`Lagde ${numGroups} treningsgrupper! Gruppe 1 har de beste spillerne.`, 'success');
+    showNotification(`Lagde ${numGroups} treningsgrupper med rotasjon! Gruppe 1 har de beste spillerne.`, 'success');
 }
 
 function displayTrainingResults(groups) {
@@ -1595,4 +1628,4 @@ setInterval(() => {
 }, 60000); // Sjekk hvert minutt
 
 // Debug info
-console.log('App.js lastet ferdig - inkludert enkel treningsfunksjon!');
+console.log('App.js lastet ferdig - inkludert rotasjonsfunksjon!');
