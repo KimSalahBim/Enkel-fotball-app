@@ -70,7 +70,7 @@
             </div>
         </header>
 
-        <!-- NAVIGASJON -->
+        <!-- NAVIGASJON - NY FANE FOR LIGA -->
         <nav class="main-nav">
             <button class="nav-btn active" data-tab="players">
                 <i class="fas fa-user-friends"></i>
@@ -83,6 +83,10 @@
             <button class="nav-btn" data-tab="match">
                 <i class="fas fa-trophy"></i>
                 <span>Kamp</span>
+            </button>
+            <button class="nav-btn" data-tab="liga">
+                <i class="fas fa-medal"></i>
+                <span>Ligaspill</span>
             </button>
         </nav>
 
@@ -166,7 +170,7 @@
         <div id="training" class="tab-content">
             <div class="section-header">
                 <h2><i class="fas fa-users"></i> Lag treningsgrupper</h2>
-                <p class="section-description">Velg spillere og lag balanserte grupper</p>
+                <p class="section-description">Velg spillere og lag sorterte grupper (beste sammen)</p>
             </div>
             
             <div class="card">
@@ -274,6 +278,74 @@
                     <div class="empty-state">
                         <i class="fas fa-futbol"></i>
                         <p>Velg spillere og klikk "Lag kampoppsett"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LIGASPILL - NY SEKSJON -->
+        <div id="liga" class="tab-content">
+            <div class="section-header">
+                <h2><i class="fas fa-medal"></i> Ligaspill</h2>
+                <p class="section-description">Arranger mini-turnering på trening</p>
+            </div>
+            
+            <!-- OPPSETT SEKSJON -->
+            <div class="card">
+                <h3><i class="fas fa-cog"></i> Oppsett</h3>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="ligaTeams">Antall lag (2-5)</label>
+                        <div class="number-selector">
+                            <button class="number-btn minus" data-for="ligaTeams">-</button>
+                            <input type="number" id="ligaTeams" min="2" max="5" value="3">
+                            <button class="number-btn plus" data-for="ligaTeams">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ligaRounds">Antall kamper mellom hvert lag (1-5)</label>
+                        <div class="number-selector">
+                            <button class="number-btn minus" data-for="ligaRounds">-</button>
+                            <input type="number" id="ligaRounds" min="1" max="5" value="1">
+                            <button class="number-btn plus" data-for="ligaRounds">+</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="ligaTeamNames" class="team-names-container">
+                    <!-- Lag-navn vil bli generert her -->
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="startLigaBtn" class="btn-primary">
+                        <i class="fas fa-play"></i> Start ligaspill
+                    </button>
+                    <button id="resetLigaBtn" class="btn-danger">
+                        <i class="fas fa-redo"></i> Nullstill liga
+                    </button>
+                </div>
+            </div>
+            
+            <!-- KAMPPROGRAM SEKSJON -->
+            <div class="card" style="margin-top: 20px;">
+                <h3><i class="fas fa-calendar-alt"></i> Kampprogram</h3>
+                <div id="ligaMatches" class="matches-container">
+                    <div class="empty-state">
+                        <i class="fas fa-futbol"></i>
+                        <p>Klikk "Start ligaspill" for å generere kampprogram</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- TABELL SEKSJON -->
+            <div class="card" style="margin-top: 20px;">
+                <h3><i class="fas fa-table"></i> Tabell</h3>
+                <div id="ligaTable" class="table-container">
+                    <div class="empty-state">
+                        <i class="fas fa-trophy"></i>
+                        <p>Ingen liga aktiv. Start en liga for å se tabell.</p>
                     </div>
                 </div>
             </div>

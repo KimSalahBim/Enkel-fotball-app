@@ -985,6 +985,144 @@ select:focus {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* === LIGASPILL STYLING === */
+.team-names-container {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: var(--radius-sm);
+}
+
+.team-name-input {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.team-name-input label {
+    min-width: 60px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+.team-name-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+}
+
+.matches-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.match-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: white;
+    border: 2px solid var(--gray-light);
+    border-radius: var(--radius-sm);
+    transition: all 0.3s;
+}
+
+.match-item:hover {
+    border-color: var(--primary);
+}
+
+.match-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.match-result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.result-input {
+    width: 50px;
+    text-align: center;
+    padding: 5px;
+    border: 2px solid var(--gray-light);
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.match-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.match-status.pending {
+    background: #FEF3C7;
+    color: #92400E;
+}
+
+.match-status.completed {
+    background: #D1FAE5;
+    color: #065F46;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.liga-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.liga-table th {
+    background: var(--primary);
+    color: white;
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.liga-table td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--gray-light);
+    font-size: 13px;
+}
+
+.liga-table tr:hover {
+    background: #F9FAFB;
+}
+
+.position-cell {
+    font-weight: 700;
+    color: var(--primary);
+    width: 30px;
+}
+
+.team-cell {
+    text-align: left;
+    font-weight: 600;
+    padding-left: 15px;
+}
+
+.stats-cell {
+    font-weight: 600;
+}
+
+.win { color: #059669; }
+.draw { color: #D97706; }
+.loss { color: #DC2626; }
+
 /* === RESPONSIVT DESIGN === */
 @media (max-width: 768px) {
     body {
@@ -1042,6 +1180,17 @@ select:focus {
         gap: 10px;
         text-align: center;
     }
+    
+    .liga-table th,
+    .liga-table td {
+        padding: 8px 4px;
+        font-size: 12px;
+    }
+    
+    .team-cell {
+        padding-left: 8px;
+        font-size: 12px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1061,5 +1210,15 @@ select:focus {
         flex-direction: column;
         gap: 8px;
         align-items: flex-start;
+    }
+    
+    .match-item {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .match-result {
+        align-self: flex-end;
     }
 }
