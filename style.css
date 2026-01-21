@@ -1,4 +1,4 @@
-/* Fotball Trener App - Premium Design med logoer */
+/* Fotball Trener App - Premium Design med ekte logoer */
 :root {
     --egge-blue: #0d47a1;
     --egge-light-blue: #1976d2;
@@ -192,7 +192,7 @@ body {
     margin: 0 auto;
 }
 
-/* Header med logo */
+/* Header med ekte logoer */
 .app-header {
     background: white;
     border-radius: 20px;
@@ -234,18 +234,15 @@ body {
     gap: 15px;
 }
 
-.logo-badge {
+/* Styling for ekte logo-bilder */
+.logo-image {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 20px;
-    color: white;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    object-fit: cover;
     border: 3px solid white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    background: white;
 }
 
 .club-name {
@@ -506,6 +503,7 @@ body {
     width: 20px;
     height: 20px;
     cursor: pointer;
+    accent-color: var(--egge-blue);
 }
 
 .checkbox-group label {
@@ -612,7 +610,7 @@ body {
     background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
 }
 
-/* Player Items */
+/* Player Items med nivå-visning */
 .player-item {
     display: flex;
     align-items: center;
@@ -637,7 +635,6 @@ body {
     width: 50px;
     height: 50px;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--egge-blue) 0%, var(--egge-light-blue) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -647,7 +644,7 @@ body {
     position: relative;
     margin-right: 15px;
     flex-shrink: 0;
-    box-shadow: 0 4px 10px rgba(13, 71, 161, 0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
 .goalie-badge {
@@ -688,12 +685,13 @@ body {
 }
 
 .position-indicator {
-    background: var(--gray-100);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
-    color: var(--gray-600);
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .player-actions {
@@ -762,7 +760,7 @@ body {
     color: var(--gray-400);
 }
 
-/* Player Selection */
+/* Player Selection (uten nivå) */
 .player-selection-container {
     background: white;
     border-radius: 15px;
@@ -1484,10 +1482,9 @@ body {
         margin-right: 12px;
     }
     
-    .logo-badge {
+    .logo-image {
         width: 45px;
         height: 45px;
-        font-size: 18px;
     }
 }
 
