@@ -4,370 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fotball Trener App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 </head>
 <body>
-    <!-- PASSORD BESKYTTELSE -->
-    <div id="passwordProtection" class="password-overlay">
-        <div class="password-modal">
-            <div class="password-logo">
-                <i class="fas fa-futbol"></i>
-                <h2>Fotball Trener App</h2>
+    <!-- Passord-beskyttelse -->
+    <div id="passwordProtection">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="club-badge">
+                    ⚽
+                </div>
+                <h1>Fotball Trener App</h1>
+                <p>For Egge IL & Sørlia IL</p>
             </div>
             
-            <div class="password-content">
-                <h3><i class="fas fa-lock"></i> Trener tilgang</h3>
-                <p class="password-info">Kun for autoriserte trenere på laget</p>
-                
-                <div class="password-input-group">
-                    <input type="password" id="passwordInput" placeholder="Skriv passord" autocomplete="off">
-                    <button id="showPasswordBtn" class="password-toggle">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-                
-                <button id="loginBtn" class="btn-password">
-                    <i class="fas fa-sign-in-alt"></i> Logg inn som trener
+            <div class="password-input-container">
+                <input type="password" id="passwordInput" placeholder="Skriv inn passord">
+                <button id="showPasswordBtn" class="show-password-btn">
+                    <i class="fas fa-eye"></i>
                 </button>
-                
-                <div class="password-hint">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Spør laglederen om passordet</span>
-                </div>
-                
-                <div id="passwordError" class="password-error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Feil passord. Prøv igjen.</span>
-                </div>
+            </div>
+            
+            <button id="loginBtn" class="btn-primary">
+                <i class="fas fa-lock-open"></i> Logg inn
+            </button>
+            
+            <div id="passwordError" class="error-message">
+                Feil passord! Prøv igjen.
+            </div>
+            
+            <div style="margin-top: 20px; font-size: 12px; color: #666;">
+                <i class="fas fa-info-circle"></i> Passord: 1234
             </div>
         </div>
     </div>
 
-    <!-- HOVEDAPPEN -->
-    <div class="container" id="mainApp" style="display: none;">
-        <!-- HEADER -->
-        <header class="main-header">
-            <div class="logo-container">
-                <div class="logo">
-                    <i class="fas fa-futbol"></i>
-                    <span>Fotball Trener</span>
-                </div>
-                <button id="logoutBtn" class="logout-btn">
+    <!-- Hovedapp -->
+    <div id="mainApp" style="display: none;">
+        <!-- Header med logo -->
+        <header class="app-header">
+            <div id="logoContainer">
+                <!-- Logo blir satt her dynamisk -->
+            </div>
+            <div class="header-actions">
+                <button id="refreshBtn" class="btn-secondary" title="Oppdater appen">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button id="logoutBtn" class="btn-secondary">
                     <i class="fas fa-sign-out-alt"></i> Logg ut
                 </button>
             </div>
-            <div class="stats-bar">
-                <div class="stat">
-                    <i class="fas fa-users"></i>
-                    <span id="totalPlayers">0</span> spillere
-                </div>
-                <div class="stat">
-                    <i class="fas fa-tshirt"></i>
-                    <span id="totalGoalies">0</span> liker målvakt
-                </div>
-            </div>
         </header>
 
-        <!-- NAVIGASJON - NY FANE FOR LIGA -->
-        <nav class="main-nav">
+        <!-- Navigasjon -->
+        <nav class="app-nav">
             <button class="nav-btn active" data-tab="players">
-                <i class="fas fa-user-friends"></i>
-                <span>Spillere</span>
+                <i class="fas fa-users"></i> Spillere
             </button>
             <button class="nav-btn" data-tab="training">
-                <i class="fas fa-running"></i>
-                <span>Trening</span>
+                <i class="fas fa-running"></i> Trening
             </button>
             <button class="nav-btn" data-tab="match">
-                <i class="fas fa-trophy"></i>
-                <span>Kamp</span>
+                <i class="fas fa-futbol"></i> Kamp
             </button>
             <button class="nav-btn" data-tab="liga">
-                <i class="fas fa-medal"></i>
-                <span>Ligaspill</span>
+                <i class="fas fa-trophy"></i> Liga
             </button>
         </nav>
 
-        <!-- SPILLERADMINISTRASJON -->
-        <div id="players" class="tab-content active">
-            <div class="section-header">
-                <h2><i class="fas fa-user-plus"></i> Legg til ny spiller</h2>
-            </div>
-            
-            <div class="card add-player-card">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="playerName">Spillernavn</label>
-                        <input type="text" id="playerName" placeholder="F.eks. Ole Hansen" maxlength="30">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="playerSkill">Ferdighetsnivå (1-6)</label>
-                        <select id="playerSkill" class="skill-select">
-                            <option value="1">1 - Nybegynner</option>
-                            <option value="2">2 - Noe erfaring</option>
-                            <option value="3" selected>3 - God</option>
-                            <option value="4">4 - Svært god</option>
-                            <option value="5">5 - Utmerket</option>
-                            <option value="6">6 - Elite</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="playerGoalie">
-                            <label for="playerGoalie">
-                                <i class="fas fa-tshirt"></i> Liker å stå i mål
-                            </label>
+        <!-- Innhold -->
+        <main>
+            <!-- SPILLERE TAB -->
+            <div id="players" class="tab-content active">
+                <div class="tab-header">
+                    <h2><i class="fas fa-users"></i> Spillerhåndtering</h2>
+                    <p class="tab-description">Legg til, rediger eller fjern spillere. Spillere får nivå 1-6 bak kulissene, men dette vises ikke for foreldre.</p>
+                </div>
+
+                <!-- Legg til spiller form -->
+                <div class="player-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="playerName">Spillerens navn:</label>
+                            <input type="text" id="playerName" placeholder="Feks: Per Hansen">
+                        </div>
+                        <div class="form-group">
+                            <label for="playerSkill">Ferdighetsnivå (bak kulissene):</label>
+                            <select id="playerSkill">
+                                <option value="1">1 - Nybegynner</option>
+                                <option value="2">2 - Litt erfaring</option>
+                                <option value="3" selected>3 - Middels</option>
+                                <option value="4">4 - God</option>
+                                <option value="5">5 - Veldig god</option>
+                                <option value="6">6 - Avansert</option>
+                            </select>
                         </div>
                     </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="playerGoalie">
+                        <label for="playerGoalie">Denne spilleren liker å stå i mål</label>
+                    </div>
+                    <button id="addPlayerBtn" class="btn-primary" style="margin-top: 15px;">
+                        <i class="fas fa-user-plus"></i> Legg til spiller
+                    </button>
                 </div>
-                
-                <button id="addPlayerBtn" class="btn-primary add-btn">
-                    <i class="fas fa-plus-circle"></i> Legg til spiller
-                </button>
+
+                <!-- Spillerliste -->
+                <div class="player-list-container">
+                    <div class="player-list-header">
+                        <div class="player-stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalPlayers">0</div>
+                                <div class="stat-label">Totalt</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalGoalies">0</div>
+                                <div class="stat-label">Målvakter</div>
+                            </div>
+                        </div>
+                        <div class="list-actions">
+                            <button id="exportBtn" class="btn-secondary">
+                                <i class="fas fa-download"></i> Eksport
+                            </button>
+                            <button id="importBtn" class="btn-secondary">
+                                <i class="fas fa-upload"></i> Import
+                            </button>
+                            <input type="file" id="importFile" accept=".json" style="display: none;">
+                            <button id="clearAllBtn" class="btn-secondary btn-danger">
+                                <i class="fas fa-trash"></i> Slett alle
+                            </button>
+                        </div>
+                    </div>
+                    <div id="playerList">
+                        <!-- Spillere vises her -->
+                    </div>
+                </div>
             </div>
 
-            <div class="section-header">
-                <h2><i class="fas fa-list"></i> Spillerliste</h2>
-                <div class="player-count">
-                    <span id="playerCount">0</span> spillere registrert
+            <!-- TRENING TAB -->
+            <div id="training" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-running"></i> Treningsgrupper</h2>
+                    <p class="tab-description">Lag balanserte treningsgrupper der de beste spillerne trener sammen (gruppe A).</p>
                 </div>
-            </div>
-            
-            <div class="card player-list-card">
-                <div id="playerList" class="player-list">
-                    <div class="empty-state">
-                        <i class="fas fa-users-slash"></i>
-                        <p>Ingen spillere lagt til ennå</p>
-                        <p class="small-text">Legg til noen spillere for å komme i gang</p>
-                    </div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button id="exportBtn" class="btn-secondary">
-                        <i class="fas fa-download"></i> Eksporter
-                    </button>
-                    <button id="importBtn" class="btn-secondary">
-                        <i class="fas fa-upload"></i> Importer
-                    </button>
-                    <input type="file" id="importFile" accept=".json" style="display: none;">
-                    <button id="clearAllBtn" class="btn-danger">
-                        <i class="fas fa-trash-alt"></i> Slett alle
-                    </button>
-                </div>
-                
-                <div class="info-box">
-                    <i class="fas fa-info-circle"></i>
-                    <p>Alle trenere ser de samme spillerne. Data lagres automatisk.</p>
-                </div>
-            </div>
-        </div>
 
-        <!-- TRENINGSOPPSETT -->
-        <div id="training" class="tab-content">
-            <div class="section-header">
-                <h2><i class="fas fa-users"></i> Lag treningsgrupper</h2>
-                <p class="section-description">Velg spillere og lag sorterte grupper (beste sammen)</p>
-            </div>
-            
-            <div class="card">
-                <div class="selection-controls">
-                    <div class="select-all">
-                        <button id="selectAllTraining" class="btn-small">
-                            <i class="fas fa-check-square"></i> Velg alle
-                        </button>
-                        <button id="deselectAllTraining" class="btn-small">
-                            <i class="far fa-square"></i> Ingen
-                        </button>
+                <!-- Spillerutvalg -->
+                <div class="player-selection-container">
+                    <div class="selection-header">
+                        <div class="selection-count">
+                            <span>Valgte spillere:</span>
+                            <div class="count-badge" id="trainingSelectedCount">0</div>
+                        </div>
+                        <div class="selection-actions">
+                            <button id="selectAllTraining" class="btn-secondary">
+                                <i class="fas fa-check-square"></i> Velg alle
+                            </button>
+                            <button id="deselectAllTraining" class="btn-secondary">
+                                <i class="fas fa-square"></i> Fjern alle
+                            </button>
+                        </div>
                     </div>
-                    <div class="selected-count">
-                        Valgte: <span id="trainingSelectedCount">0</span> spillere
-                    </div>
-                </div>
-                
-                <div id="trainingPlayerSelection" class="player-selection-grid">
-                    <div class="empty-state">
-                        <i class="fas fa-user-plus"></i>
-                        <p>Legg til spillere først i "Spillere"-fanen</p>
+                    <div id="trainingPlayerSelection" class="player-selection">
+                        <!-- Spillere for trening vises her -->
                     </div>
                 </div>
-                
-                <div class="settings-row">
-                    <div class="form-group">
-                        <label for="trainingGroups">Antall grupper</label>
-                        <div class="number-selector">
-                            <button class="number-btn minus" data-for="trainingGroups">-</button>
-                            <input type="number" id="trainingGroups" min="2" max="6" value="2">
+
+                <!-- Innstillinger -->
+                <div class="group-settings">
+                    <div class="settings-row">
+                        <div class="settings-label">Antall grupper:</div>
+                        <div class="number-control">
+                            <button class="number-btn minus" data-for="trainingGroups">−</button>
+                            <input type="number" id="trainingGroups" class="number-input" value="3" min="2" max="6">
                             <button class="number-btn plus" data-for="trainingGroups">+</button>
                         </div>
                     </div>
+                    <button id="createTrainingGroupsBtn" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-users"></i> Lag treningsgrupper
+                    </button>
                 </div>
-                
-                <button id="createTrainingGroupsBtn" class="btn-primary action-btn">
-                    <i class="fas fa-random"></i> Lag treningsgrupper
-                </button>
+
+                <!-- Resultater -->
+                <div class="results-container">
+                    <h3 style="margin-bottom: 15px;">Resultater</h3>
+                    <div id="trainingResults">
+                        <!-- Grupper vises her -->
+                    </div>
+                </div>
             </div>
 
-            <div class="card results-card">
-                <h3><i class="fas fa-project-diagram"></i> Resultat</h3>
-                <div id="trainingResults">
-                    <div class="empty-state">
-                        <i class="fas fa-users-slash"></i>
-                        <p>Velg spillere og klikk "Lag treningsgrupper"</p>
-                    </div>
+            <!-- KAMP TAB -->
+            <div id="match" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-futbol"></i> Kampoppsett</h2>
+                    <p class="tab-description">Lag jevne lag for kamper med balansert fordeling av ferdigheter.</p>
                 </div>
-            </div>
-        </div>
 
-        <!-- KAMPOPPSETT -->
-        <div id="match" class="tab-content">
-            <div class="section-header">
-                <h2><i class="fas fa-trophy"></i> Lag kampoppsett</h2>
-                <p class="section-description">Lag balanserte lag for kamp</p>
-            </div>
-            
-            <div class="card">
-                <div class="selection-controls">
-                    <div class="select-all">
-                        <button id="selectAllMatch" class="btn-small">
-                            <i class="fas fa-check-square"></i> Velg alle
-                        </button>
-                        <button id="deselectAllMatch" class="btn-small">
-                            <i class="far fa-square"></i> Ingen
-                        </button>
+                <!-- Spillerutvalg -->
+                <div class="player-selection-container">
+                    <div class="selection-header">
+                        <div class="selection-count">
+                            <span>Valgte spillere:</span>
+                            <div class="count-badge" id="matchSelectedCount">0</div>
+                        </div>
+                        <div class="selection-actions">
+                            <button id="selectAllMatch" class="btn-secondary">
+                                <i class="fas fa-check-square"></i> Velg alle
+                            </button>
+                            <button id="deselectAllMatch" class="btn-secondary">
+                                <i class="fas fa-square"></i> Fjern alle
+                            </button>
+                        </div>
                     </div>
-                    <div class="selected-count">
-                        Valgte: <span id="matchSelectedCount">0</span> spillere
-                    </div>
-                </div>
-                
-                <div id="matchPlayerSelection" class="player-selection-grid">
-                    <div class="empty-state">
-                        <i class="fas fa-user-plus"></i>
-                        <p>Legg til spillere først i "Spillere"-fanen</p>
+                    <div id="matchPlayerSelection" class="player-selection">
+                        <!-- Spillere for kamp vises her -->
                     </div>
                 </div>
-                
-                <div class="settings-row">
-                    <div class="form-group">
-                        <label for="matchTeams">Antall lag</label>
-                        <div class="number-selector">
-                            <button class="number-btn minus" data-for="matchTeams">-</button>
-                            <input type="number" id="matchTeams" min="2" max="5" value="2">
+
+                <!-- Innstillinger -->
+                <div class="group-settings">
+                    <div class="settings-row">
+                        <div class="settings-label">Antall lag:</div>
+                        <div class="number-control">
+                            <button class="number-btn minus" data-for="matchTeams">−</button>
+                            <input type="number" id="matchTeams" class="number-input" value="2" min="2" max="5">
                             <button class="number-btn plus" data-for="matchTeams">+</button>
                         </div>
                     </div>
+                    <div class="settings-row">
+                        <div class="checkbox-control">
+                            <input type="checkbox" id="allowTeamsWithoutGoalies" checked>
+                            <label for="allowTeamsWithoutGoalies">Tillag lag uten målvakter</label>
+                        </div>
+                    </div>
+                    <button id="createMatchTeamsBtn" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-tshirt"></i> Lag kampoppsett
+                    </button>
                 </div>
-                
-                <div class="form-group checkbox-group">
-                    <input type="checkbox" id="allowTeamsWithoutGoalies" checked>
-                    <label for="allowTeamsWithoutGoalies">Tillat lag uten dedikerte målvakter</label>
-                </div>
-                
-                <button id="createMatchTeamsBtn" class="btn-primary action-btn">
-                    <i class="fas fa-flag"></i> Lag kampoppsett
-                </button>
-            </div>
 
-            <div class="card results-card">
-                <h3><i class="fas fa-ranking-star"></i> Resultat</h3>
-                <div id="matchResults">
-                    <div class="empty-state">
-                        <i class="fas fa-futbol"></i>
-                        <p>Velg spillere og klikk "Lag kampoppsett"</p>
+                <!-- Resultater -->
+                <div class="results-container">
+                    <h3 style="margin-bottom: 15px;">Kampoppsett</h3>
+                    <div id="matchResults">
+                        <!-- Lag vises her -->
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- LIGASPILL - NY SEKSJON -->
-        <div id="liga" class="tab-content">
-            <div class="section-header">
-                <h2><i class="fas fa-medal"></i> Ligaspill</h2>
-                <p class="section-description">Arranger mini-turnering på trening</p>
-            </div>
-            
-            <!-- OPPSETT SEKSJON -->
-            <div class="card">
-                <h3><i class="fas fa-cog"></i> Oppsett</h3>
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="ligaTeams">Antall lag (2-5)</label>
-                        <div class="number-selector">
-                            <button class="number-btn minus" data-for="ligaTeams">-</button>
-                            <input type="number" id="ligaTeams" min="2" max="5" value="3">
+            <!-- LIGA TAB -->
+            <div id="liga" class="tab-content">
+                <div class="tab-header">
+                    <h2><i class="fas fa-trophy"></i> Ligaspill</h2>
+                    <p class="tab-description">Organiser et ligaspill med flere lag og hold oversikt over resultater.</p>
+                </div>
+
+                <!-- Oppstart -->
+                <div class="group-settings">
+                    <div class="settings-row">
+                        <div class="settings-label">Antall lag:</div>
+                        <div class="number-control">
+                            <button class="number-btn minus" data-for="ligaTeams">−</button>
+                            <input type="number" id="ligaTeams" class="number-input" value="3" min="2" max="5">
                             <button class="number-btn plus" data-for="ligaTeams">+</button>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="ligaRounds">Antall kamper mellom hvert lag (1-5)</label>
-                        <div class="number-selector">
-                            <button class="number-btn minus" data-for="ligaRounds">-</button>
-                            <input type="number" id="ligaRounds" min="1" max="5" value="1">
+                    <div class="settings-row">
+                        <div class="settings-label">Kamper per lagpar:</div>
+                        <div class="number-control">
+                            <button class="number-btn minus" data-for="ligaRounds">−</button>
+                            <input type="number" id="ligaRounds" class="number-input" value="2" min="1" max="5">
                             <button class="number-btn plus" data-for="ligaRounds">+</button>
                         </div>
                     </div>
-                </div>
-                
-                <div id="ligaTeamNames" class="team-names-container">
-                    <!-- Lag-navn vil bli generert her -->
-                </div>
-                
-                <div class="action-buttons">
-                    <button id="startLigaBtn" class="btn-primary">
-                        <i class="fas fa-play"></i> Start ligaspill
-                    </button>
-                    <button id="resetLigaBtn" class="btn-danger">
-                        <i class="fas fa-redo"></i> Nullstill liga
-                    </button>
-                </div>
-            </div>
-            
-            <!-- KAMPPROGRAM SEKSJON -->
-            <div class="card" style="margin-top: 20px;">
-                <h3><i class="fas fa-calendar-alt"></i> Kampprogram</h3>
-                <div id="ligaMatches" class="matches-container">
-                    <div class="empty-state">
-                        <i class="fas fa-futbol"></i>
-                        <p>Klikk "Start ligaspill" for å generere kampprogram</p>
+                    
+                    <!-- Lag-navn -->
+                    <div id="ligaTeamNames" class="team-name-inputs">
+                        <!-- Lag-navn inputs vises her -->
+                    </div>
+                    
+                    <div class="form-row" style="margin-top: 20px;">
+                        <button id="startLigaBtn" class="btn-primary">
+                            <i class="fas fa-play"></i> Start liga
+                        </button>
+                        <button id="resetLigaBtn" class="btn-secondary btn-danger">
+                            <i class="fas fa-trash"></i> Nullstill liga
+                        </button>
                     </div>
                 </div>
-            </div>
-            
-            <!-- TABELL SEKSJON -->
-            <div class="card" style="margin-top: 20px;">
-                <h3><i class="fas fa-table"></i> Tabell</h3>
-                <div id="ligaTable" class="table-container">
-                    <div class="empty-state">
-                        <i class="fas fa-trophy"></i>
-                        <p>Ingen liga aktiv. Start en liga for å se tabell.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- NOTIFIKASJONER -->
+                <!-- Kamper -->
+                <div class="matches-container">
+                    <h3 style="margin-bottom: 15px;">Kampprogram</h3>
+                    <div id="ligaMatches">
+                        <!-- Kamper vises her -->
+                    </div>
+                </div>
+
+                <!-- Tabell -->
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">Ligatabell</h3>
+                    <div id="ligaTable">
+                        <!-- Tabell vises her -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Notifikasjoner -->
         <div id="notification" class="notification"></div>
-
-        <!-- FOOTER -->
-        <footer class="main-footer">
-            <div class="footer-content">
-                <div class="footer-info">
-                    <i class="fas fa-mobile-alt"></i>
-                    <span>Fungerer på mobil og PC</span>
-                </div>
-                <div class="footer-actions">
-                    <button id="refreshBtn" class="footer-btn">
-                        <i class="fas fa-redo"></i> Oppdater
-                    </button>
-                </div>
-            </div>
-        </footer>
     </div>
 
     <script src="app.js"></script>
