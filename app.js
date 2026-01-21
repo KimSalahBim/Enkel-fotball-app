@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // === PASSORD FUNKSJONER ===
+function showMainApp() {
+    console.log('Viser hovedapp');
+    document.getElementById('passwordProtection').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+}
+
 function checkLoginStatus() {
     const isLoggedIn = localStorage.getItem('fotballLoggedIn');
     const loginTime = localStorage.getItem('fotballLoginTime');
